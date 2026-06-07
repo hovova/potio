@@ -1,41 +1,58 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import '../widgets/potio_card.dart';
+import 'premium_screen.dart';
+import 'quiz_screen.dart';
 
-class CampaignScreen extends StatelessWidget {
-  const CampaignScreen({super.key});
+class PotioCampaignScreen extends StatelessWidget {
+  const PotioCampaignScreen({super.key});
+
+  void _openScreen(BuildContext context, Widget screen) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => screen),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return PotioScaffold(
       child: Padding(
-        padding: EdgeInsets.all(24),
+        padding: const EdgeInsets.all(20),
         child: ListView(
           children: [
-            Text(
-              'Campaign',
-              style: TextStyle(
-                fontSize: 34,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFFFFDCA8),
-              ),
+            const PotioPageHeader(
+              eyebrow: 'Academy paths',
+              title: 'Campaign',
+              subtitle:
+                  'Potio uses bartender academy paths instead of Stella’s sky map.',
+              icon: Icons.route,
             ),
-            SizedBox(height: 8),
-            Text(
-              'Progress through Potio’s drink academy and master recipes step by step.',
-              style: TextStyle(color: Colors.white70, height: 1.5),
-            ),
-            SizedBox(height: 24),
+            const SizedBox(height: 18),
             PotioCard(
+              badge: 'Free',
               icon: Icons.local_bar_outlined,
               title: 'Basic Bar Academy',
-              subtitle: 'Free campaign • 20 levels • 50 popular drinks',
+              subtitle: '20 levels • 50 popular drinks • all quiz modes available.',
+              onTap: () => _openScreen(context, const QuizScreen()),
             ),
-            SizedBox(height: 14),
+            const SizedBox(height: 12),
             PotioCard(
+              badge: 'Premium',
               icon: Icons.workspace_premium_outlined,
               title: 'Master Mixologist Academy',
-              subtitle: 'Premium campaign • 100+ drinks • bartender guide • no ads',
+              subtitle:
+                  '100+ total drinks • advanced recipes • bartender guide • offline • no ads.',
+              onTap: () => _openScreen(context, const PremiumScreen()),
+            ),
+            const SizedBox(height: 12),
+            PotioCard(
+              badge: 'Exam style',
+              icon: Icons.school_outlined,
+              title: 'Bartender Trials',
+              subtitle:
+                  'Future challenge levels covering glassware, methods, allergens, and service knowledge.',
+              onTap: () => _openScreen(context, const QuizScreen()),
             ),
           ],
         ),

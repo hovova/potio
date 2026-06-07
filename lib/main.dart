@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import 'screens/root_screen.dart';
 
@@ -15,12 +15,12 @@ class PotioApp extends StatelessWidget {
       title: 'Potio',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        scaffoldBackgroundColor: const Color(0xFF130B08),
+        useMaterial3: true,
+        scaffoldBackgroundColor: const Color(0xFF1E120C),
         colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFFE9A84C),
+          seedColor: const Color(0xFF1F6F5B),
           brightness: Brightness.dark,
         ),
-        useMaterial3: true,
       ),
       home: const RootScreen(),
     );
