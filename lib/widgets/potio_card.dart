@@ -21,7 +21,9 @@ class PotioScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    final canGoBack = Navigator.canPop(context);
+
+    return Material(
       color: potioEspresso,
       child: Stack(
         children: [
@@ -49,7 +51,50 @@ class PotioScaffold extends StatelessWidget {
               ),
             ),
           ),
-          SafeArea(child: child),
+          SafeArea(
+            child: Padding(
+              padding: EdgeInsets.only(top: canGoBack ? 52 : 0),
+              child: child,
+            ),
+          ),
+          if (canGoBack)
+            Positioned(
+              top: 12,
+              left: 14,
+              child: Material(
+                color: potioPaper,
+                borderRadius: BorderRadius.circular(999),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(999),
+                  onTap: () => Navigator.maybePop(context),
+                  child: const Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 9,
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.arrow_back,
+                          color: potioEmerald,
+                          size: 18,
+                        ),
+                        SizedBox(width: 6),
+                        Text(
+                          'Back',
+                          style: TextStyle(
+                            color: potioInk,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );
@@ -184,78 +229,81 @@ class PotioCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(28),
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(18),
-        decoration: BoxDecoration(
-          color: potioDarkCoffee.withValues(alpha: 0.92),
-          borderRadius: BorderRadius.circular(28),
-          border: Border.all(
-            color: potioCopperLight.withValues(alpha: 0.22),
-          ),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 54,
-              height: 54,
-              decoration: BoxDecoration(
-                color: potioPaper.withValues(alpha: 0.10),
-                borderRadius: BorderRadius.circular(19),
-              ),
-              child: Icon(
-                icon,
-                color: potioCopperLight,
-              ),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(28),
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            color: potioDarkCoffee.withValues(alpha: 0.92),
+            borderRadius: BorderRadius.circular(28),
+            border: Border.all(
+              color: potioCopperLight.withValues(alpha: 0.22),
             ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (badge != null) ...[
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 54,
+                height: 54,
+                decoration: BoxDecoration(
+                  color: potioPaper.withValues(alpha: 0.10),
+                  borderRadius: BorderRadius.circular(19),
+                ),
+                child: Icon(
+                  icon,
+                  color: potioCopperLight,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (badge != null) ...[
+                      Text(
+                        badge!.toUpperCase(),
+                        style: const TextStyle(
+                          color: potioSage,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 1.2,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                    ],
                     Text(
-                      badge!.toUpperCase(),
+                      title,
                       style: const TextStyle(
-                        color: potioSage,
-                        fontSize: 10,
+                        color: potioPaper,
+                        fontSize: 17,
                         fontWeight: FontWeight.w900,
-                        letterSpacing: 1.2,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 5),
+                    Text(
+                      subtitle,
+                      style: const TextStyle(
+                        color: potioPaperDeep,
+                        height: 1.35,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
                   ],
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      color: potioPaper,
-                      fontSize: 17,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                  const SizedBox(height: 5),
-                  Text(
-                    subtitle,
-                    style: const TextStyle(
-                      color: potioPaperDeep,
-                      height: 1.35,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
+                ),
               ),
-            ),
-            if (trailing != null) ...[
-              const SizedBox(width: 10),
-              trailing!,
-            ] else
-              const Icon(
-                Icons.chevron_right,
-                color: potioCopperLight,
-              ),
-          ],
+              if (trailing != null) ...[
+                const SizedBox(width: 10),
+                trailing!,
+              ] else
+                const Icon(
+                  Icons.chevron_right,
+                  color: potioCopperLight,
+                ),
+            ],
+          ),
         ),
       ),
     );

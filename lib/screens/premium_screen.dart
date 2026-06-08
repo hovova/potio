@@ -1,9 +1,41 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../widgets/potio_card.dart';
 
-class PremiumScreen extends StatelessWidget {
+final ValueNotifier<bool> potioPremiumActiveNotifier = ValueNotifier<bool>(false);
+
+class PremiumScreen extends StatefulWidget {
   const PremiumScreen({super.key});
+
+  @override
+  State<PremiumScreen> createState() => _PremiumScreenState();
+}
+
+class _PremiumScreenState extends State<PremiumScreen> {
+  void _showPurchaseComingSoon() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          'Premium purchase will be connected to Google Play Billing later.',
+        ),
+      ),
+    );
+  }
+
+  void _toggleDeveloperPremium() {
+    potioPremiumActiveNotifier.value = !potioPremiumActiveNotifier.value;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          potioPremiumActiveNotifier.value
+              ? 'Developer mode: Premium unlocked.'
+              : 'Developer mode: Premium disabled.',
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -18,6 +50,48 @@ class PremiumScreen extends StatelessWidget {
               subtitle:
                   'Compare the free learning experience with the full Master Mixologist version.',
               icon: Icons.workspace_premium,
+            ),
+            const SizedBox(height: 18),
+            ValueListenableBuilder<bool>(
+              valueListenable: potioPremiumActiveNotifier,
+              builder: (context, premiumActive, _) {
+                return Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: premiumActive
+                        ? potioEmerald.withValues(alpha: 0.95)
+                        : potioDarkCoffee.withValues(alpha: 0.92),
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(
+                      color: premiumActive
+                          ? potioPaper.withValues(alpha: 0.28)
+                          : potioCopperLight.withValues(alpha: 0.18),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        premiumActive
+                            ? Icons.verified
+                            : Icons.workspace_premium_outlined,
+                        color: premiumActive ? potioPaper : potioCopperLight,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          premiumActive
+                              ? 'Premium Status: Active'
+                              : 'Premium Status: Not active',
+                          style: TextStyle(
+                            color: premiumActive ? potioPaper : potioPaperDeep,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
             ),
             const SizedBox(height: 18),
             const Row(
@@ -44,7 +118,7 @@ class PremiumScreen extends StatelessWidget {
                 Expanded(
                   child: _PlanCard(
                     title: 'Premium',
-                    subtitle: 'Coming soon',
+                    subtitle: 'Full access',
                     highlighted: true,
                     features: [
                       PlanFeature('100+ total drinks'),
@@ -68,21 +142,53 @@ class PremiumScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(999),
                 ),
               ),
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text(
-                      'Premium purchase will be connected to Google Play Billing later.',
-                    ),
-                  ),
-                );
-              },
+              onPressed: _showPurchaseComingSoon,
               icon: const Icon(Icons.workspace_premium),
               label: const Text(
                 'Unlock Potio Premium',
                 style: TextStyle(fontWeight: FontWeight.w900),
               ),
             ),
+            if (kDebugMode) ...[
+              const SizedBox(height: 10),
+              ValueListenableBuilder<bool>(
+                valueListenable: potioPremiumActiveNotifier,
+                builder: (context, premiumActive, _) {
+                  return OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: potioCopperLight,
+                      side: const BorderSide(color: potioCopperLight),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                    ),
+                    onPressed: _toggleDeveloperPremium,
+                    icon: Icon(
+                      premiumActive
+                          ? Icons.lock_open
+                          : Icons.developer_mode,
+                    ),
+                    label: Text(
+                      premiumActive
+                          ? 'Developer: Disable Premium'
+                          : 'Developer: Unlock Premium',
+                      style: const TextStyle(fontWeight: FontWeight.w900),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Debug-only button. This will not appear in release builds.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: potioPaperDeep,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
             const SizedBox(height: 12),
             const PotioCard(
               badge: 'Premium unlocks',
