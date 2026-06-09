@@ -1,6 +1,8 @@
 ﻿import 'package:flutter/material.dart';
 
+import '../services/audio_service.dart';
 import '../widgets/potio_card.dart';
+import '../widgets/sound_toggle_button.dart';
 import 'campaign_screen.dart';
 import 'daily_match_challenge_screen.dart';
 import 'encyclopedia_screen.dart';
@@ -15,14 +17,6 @@ class HomeScreen extends StatelessWidget {
       context: context,
       backgroundColor: Colors.transparent,
       builder: (_) => const _LanguageSheet(),
-    );
-  }
-
-  void _toggleSound(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Sound settings will be connected to progress storage later.'),
-      ),
     );
   }
 
@@ -60,11 +54,7 @@ class HomeScreen extends StatelessWidget {
                   onTap: () => _openLanguageSelector(context),
                 ),
                 const SizedBox(width: 10),
-                _TopRoundButton(
-                  icon: Icons.volume_up,
-                  label: 'Sound',
-                  onTap: () => _toggleSound(context),
-                ),
+                const SoundToggleButton(),
                 const Spacer(),
                 _PremiumCornerButton(
                   onTap: () => _openPremium(context),
@@ -104,7 +94,8 @@ class HomeScreen extends StatelessWidget {
               icon: Icons.calendar_month_outlined,
               title: 'Daily Mixology',
               subtitle: 'One XP reward per day, replayable for practice.',
-              onTap: () => _openScreen(context, const DailyMixologyChallengeScreen()),
+              onTap: () =>
+                  _openScreen(context, const DailyMixologyChallengeScreen()),
             ),
             const SizedBox(height: 12),
             PotioCard(
@@ -167,7 +158,10 @@ class _TopRoundButton extends StatelessWidget {
       borderRadius: BorderRadius.circular(999),
       child: InkWell(
         borderRadius: BorderRadius.circular(999),
-        onTap: onTap,
+        onTap: () async {
+          await PotioAudioService.instance.playTap();
+          onTap();
+        },
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 9),
           child: Row(
@@ -205,7 +199,10 @@ class _PremiumCornerButton extends StatelessWidget {
       borderRadius: BorderRadius.circular(999),
       child: InkWell(
         borderRadius: BorderRadius.circular(999),
-        onTap: onTap,
+        onTap: () async {
+          await PotioAudioService.instance.playTap();
+          onTap();
+        },
         child: const Padding(
           padding: EdgeInsets.symmetric(horizontal: 13, vertical: 9),
           child: Row(
@@ -306,7 +303,10 @@ class _LanguageOption extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      onTap: onTap,
+      onTap: () async {
+        await PotioAudioService.instance.playTap();
+        onTap();
+      },
       leading: Text(flag, style: const TextStyle(fontSize: 26)),
       title: Text(
         title,

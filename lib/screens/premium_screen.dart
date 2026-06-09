@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import '../services/audio_service.dart';
 import '../widgets/potio_card.dart';
 
 final ValueNotifier<bool> potioPremiumActiveNotifier = ValueNotifier<bool>(false);
@@ -13,7 +14,11 @@ class PremiumScreen extends StatefulWidget {
 }
 
 class _PremiumScreenState extends State<PremiumScreen> {
-  void _showPurchaseComingSoon() {
+  Future<void> _showPurchaseComingSoon() async {
+    await PotioAudioService.instance.playTap();
+
+    if (!mounted) return;
+
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text(
@@ -23,8 +28,12 @@ class _PremiumScreenState extends State<PremiumScreen> {
     );
   }
 
-  void _toggleDeveloperPremium() {
+  Future<void> _toggleDeveloperPremium() async {
+    await PotioAudioService.instance.playTap();
+
     potioPremiumActiveNotifier.value = !potioPremiumActiveNotifier.value;
+
+    if (!mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(

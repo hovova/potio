@@ -1,9 +1,15 @@
 ﻿import 'package:flutter/material.dart';
 
 import 'screens/root_screen.dart';
+import 'services/audio_service.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const PotioApp());
+
+  Future.delayed(const Duration(milliseconds: 800), () {
+    PotioAudioService.instance.startBackgroundMusic();
+  });
 }
 
 class PotioApp extends StatelessWidget {

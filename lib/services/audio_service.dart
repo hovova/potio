@@ -1,85 +1,89 @@
 import 'package:audioplayers/audioplayers.dart';
+import 'package:flutter/foundation.dart';
 
 class PotioAudioService {
-  static final AudioPlayer _musicPlayer = AudioPlayer();
-  static final AudioPlayer _sfxPlayer = AudioPlayer();
+  PotioAudioService._();
 
-  static bool musicEnabled = true;
-  static bool soundEnabled = true;
-  static bool _musicStarted = false;
+  static final PotioAudioService instance = PotioAudioService._();
 
-  static Future<void> updateMusicState({required bool enabled}) async {
-    musicEnabled = enabled;
+  final AudioPlayer _sfxPlayer = AudioPlayer();
+  final AudioPlayer _musicPlayer = AudioPlayer();
 
-    if (!enabled) {
-      await _musicPlayer.pause();
-      return;
-    }
+  final ValueNotifier<bool> soundEnabled = ValueNotifier<bool>(true);
+  final ValueNotifier<bool> musicEnabled = ValueNotifier<bool>(true);
 
-    if (_musicStarted) {
-      await _musicPlayer.resume();
-    }
+  bool _musicStarted = false;
+
+  Future<void> playTap() async {
+    await _playSound('audio/button_tap.mp3');
   }
 
-  static Future<void> updateSoundState({required bool enabled}) async {
-    soundEnabled = enabled;
+  Future<void> playCorrect() async {
+    await _playSound('audio/correct.mp3');
   }
 
-  static Future<void> startMusicAfterUserGesture() async {
-    if (!musicEnabled || _musicStarted) {
-      return;
-    }
-
-    try {
-      _musicStarted = true;
-      await _musicPlayer.setReleaseMode(ReleaseMode.loop);
-      await _musicPlayer.play(AssetSource('audio/background_music.mp3'));
-    } catch (_) {
-      _musicStarted = false;
-    }
+  Future<void> playWrong() async {
+    await _playSound('audio/wrong.mp3');
   }
 
-  static Future<void> playButtonTap() async {
-    await _playSfx('audio/button_tap.mp3');
+  Future<void> playAchievement() async {
+    await _playSound('audio/achievement.mp3');
   }
 
-  static Future<void> playCorrect() async {
-    await _playSfx('audio/correct.mp3');
-  }
-
-  static Future<void> playWrong() async {
-    await _playSfx('audio/wrong.mp3');
-  }
-
-  static Future<void> playAchievement() async {
-    await _playSfx('audio/achievement.mp3');
-  }
-
-  static Future<void> _playSfx(String assetPath) async {
-    if (!soundEnabled) {
-      return;
-    }
+  Future<void> _playSound(String assetPath) async {
+    if (!soundEnabled.value) return;
 
     try {
       await _sfxPlayer.stop();
       await _sfxPlayer.play(AssetSource(assetPath));
-    } catch (_) {
-      // Keep the app running if audio assets are not added yet.
+    } catch (error) {
+      debugPrint('Sound effect failed: $error');
     }
   }
 
-  static Future<void> pauseAllAudioForAppBackground() async {
-    await _musicPlayer.pause();
-  }
+  Future<void> startBackgroundMusic() async {
+    if (!musicEnabled.value) return;
+    if (_musicStarted) return;
 
-  static Future<void> resumeAudioAfterAppForeground() async {
-    if (musicEnabled && _musicStarted) {
-      await _musicPlayer.resume();
+    try {
+      await _musicPlayer.setReleaseMode(ReleaseMode.loop);
+      await _musicPlayer.setVolume(0.35);
+      await _musicPlayer.play(AssetSource('audio/background_music.mp3'));
+      _musicStarted = true;
+    } catch (error) {
+      debugPrint('Background music failed: $error');
     }
   }
 
-  static Future<void> dispose() async {
-    await _musicPlayer.dispose();
+  Future<void> stopBackgroundMusic() async {
+    try {
+      await _musicPlayer.stop();
+      _musicStarted = false;
+    } catch (error) {
+      debugPrint('Stopping background music failed: $error');
+    }
+  }
+
+  Future<void> toggleSound() async {
+    soundEnabled.value = !soundEnabled.value;
+
+    if (soundEnabled.value) {
+      await playTap();
+    }
+  }
+
+  Future<void> toggleMusic() async {
+    musicEnabled.value = !musicEnabled.value;
+
+    if (musicEnabled.value) {
+      await startBackgroundMusic();
+    } else {
+      await stopBackgroundMusic();
+    }
+  }
+
+  Future<void> dispose() async {
     await _sfxPlayer.dispose();
+    await _musicPlayer.dispose();
   }
 }

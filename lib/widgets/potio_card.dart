@@ -1,4 +1,5 @@
 ﻿import 'package:flutter/material.dart';
+import '../services/audio_service.dart';
 
 const potioEspresso = Color(0xFF1E120C);
 const potioDarkCoffee = Color(0xFF2B1A12);
@@ -233,7 +234,12 @@ class PotioCard extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         borderRadius: BorderRadius.circular(28),
-        onTap: onTap,
+        onTap: onTap == null
+          ? null
+          : () async {
+              await PotioAudioService.instance.playTap();
+              onTap!();
+            },
         child: Container(
           padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(

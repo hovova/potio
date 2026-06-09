@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:potio/widgets/potio_card.dart';
 
 import '../models/achievement.dart';
 import '../services/audio_service.dart';
@@ -7,7 +8,7 @@ void showAchievementPopup(
   BuildContext context,
   Achievement achievement,
 ) {
-  PotioAudioService.playAchievement();
+  PotioAudioService.instance.playAchievement();
 
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
@@ -19,10 +20,11 @@ void showAchievementPopup(
       ),
       content: Row(
         children: [
-          Text(
-            achievement.emoji,
-            style: const TextStyle(fontSize: 26),
-          ),
+          Icon(
+              achievement.icon,
+              color: potioCopperLight,
+              size: 28,
+            ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -43,6 +45,17 @@ void showAchievementPopup(
                     color: Color(0xFFE8CBAA),
                   ),
                 ),
+                if (achievement.reward != null) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    achievement.reward!,
+                    style: const TextStyle(
+                      color: Color(0xFFE8B36A),
+                      fontWeight: FontWeight.w800,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
               ],
             ),
           ),

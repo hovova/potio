@@ -1,10 +1,15 @@
 ﻿import 'package:flutter/material.dart';
 
+import '../data/achievements.dart';
+import '../models/player_progress.dart';
+import '../services/audio_service.dart';
+import '../services/progress_storage_service.dart';
 import '../widgets/potio_card.dart';
 import 'achievements_screen.dart';
 import 'avatar_selection_screen.dart';
 import 'credits_screen.dart';
 import 'leaderboard_screen.dart';
+import 'premium_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -14,22 +19,69 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  String playerName = 'Hernandez';
+  final ProgressStorageService _storage = ProgressStorageService();
+
+  PlayerProgress _progress = PlayerProgress.initial();
+  bool _loading = true;
+
+  int get unlockedAchievements {
+    return allAchievements
+        .where((achievement) => _progress.hasAchievement(achievement.id))
+        .length;
+  }
+
+  bool get premiumActive {
+    return _progress.hasPremium || potioPremiumActiveNotifier.value;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProgress();
+  }
+
+  Future<void> _loadProgress() async {
+    final loaded = await _storage.loadProgress();
+
+    PotioAudioService.instance.soundEnabled.value = loaded.soundEnabled;
+    PotioAudioService.instance.musicEnabled.value = loaded.musicEnabled;
+
+    if (loaded.hasPremium) {
+      potioPremiumActiveNotifier.value = true;
+    }
+
+    if (!mounted) return;
+
+    setState(() {
+      _progress = loaded;
+      _loading = false;
+    });
+  }
+
+  Future<void> _saveProgress(PlayerProgress progress) async {
+    if (!mounted) return;
+
+    setState(() {
+      _progress = progress;
+    });
+
+    await _storage.saveProgress(progress);
+  }
 
   void _openScreen(BuildContext context, Widget screen) {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => screen),
-    );
+    ).then((_) => _loadProgress());
   }
 
   void _editName() {
-    final controller = TextEditingController(text: playerName);
+    final controller = TextEditingController(text: _progress.playerName);
 
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (_) {
+      builder: (sheetContext) {
         return Container(
           padding: const EdgeInsets.fromLTRB(20, 18, 20, 28),
           decoration: const BoxDecoration(
@@ -98,17 +150,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                     ),
                     onPressed: () {
+                      PotioAudioService.instance.playTap();
+
                       final newName = controller.text.trim();
 
                       if (newName.isEmpty) {
                         return;
                       }
 
-                      setState(() {
-                        playerName = newName;
-                      });
+                      _saveProgress(
+                        _progress.copyWith(playerName: newName),
+                      );
 
-                      Navigator.pop(context);
+                      if (sheetContext.mounted) {
+                        Navigator.pop(sheetContext);
+                      }
                     },
                     child: const Text(
                       'Save Name',
@@ -129,7 +185,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (_) {
+      builder: (sheetContext) {
         return Container(
           padding: const EdgeInsets.fromLTRB(20, 18, 20, 28),
           decoration: const BoxDecoration(
@@ -140,71 +196,118 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           child: SafeArea(
             top: false,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const _SheetHandle(),
-                const SizedBox(height: 18),
-                const Icon(
-                  Icons.settings,
-                  color: potioEmerald,
-                  size: 38,
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Settings',
-                  style: TextStyle(
-                    color: potioInk,
-                    fontSize: 26,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-                const SizedBox(height: 18),
-                const _SettingRow(
-                  icon: Icons.workspace_premium,
-                  title: 'Premium Status',
-                  value: 'Not active',
-                ),
-                const _SettingRow(
-                  icon: Icons.straighten,
-                  title: 'Recipe Units',
-                  value: 'ml',
-                ),
-                const _SettingRow(
-                  icon: Icons.volume_up,
-                  title: 'Sound Effects',
-                  value: 'On',
-                ),
-                const _SettingRow(
-                  icon: Icons.music_note,
-                  title: 'Music',
-                  value: 'On',
-                ),
-                const _SettingRow(
-                  icon: Icons.language,
-                  title: 'Language',
-                  value: 'English',
-                ),
-                const SizedBox(height: 16),
-                SizedBox(
-                  width: double.infinity,
-                  child: FilledButton(
-                    style: FilledButton.styleFrom(
-                      backgroundColor: potioEmerald,
-                      foregroundColor: potioPaper,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(999),
+            child: ValueListenableBuilder<bool>(
+              valueListenable: potioPremiumActiveNotifier,
+              builder: (context, debugPremiumActive, _) {
+                final activePremium = _progress.hasPremium || debugPremiumActive;
+
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const _SheetHandle(),
+                    const SizedBox(height: 18),
+                    const Icon(
+                      Icons.settings,
+                      color: potioEmerald,
+                      size: 38,
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Settings',
+                      style: TextStyle(
+                        color: potioInk,
+                        fontSize: 26,
+                        fontWeight: FontWeight.w900,
                       ),
                     ),
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text(
-                      'Done',
-                      style: TextStyle(fontWeight: FontWeight.w900),
+                    const SizedBox(height: 18),
+                    _SettingRow(
+                      icon: activePremium
+                          ? Icons.verified
+                          : Icons.workspace_premium,
+                      title: 'Premium Status',
+                      value: activePremium ? 'Active' : 'Not active',
                     ),
-                  ),
-                ),
-              ],
+                    _SettingRow(
+                      icon: Icons.straighten,
+                      title: 'Recipe Units',
+                      value: _progress.selectedUnitSystem,
+                      onTap: () {
+                        PotioAudioService.instance.playTap();
+                        _cycleUnits();
+                      },
+                    ),
+                    ValueListenableBuilder<bool>(
+                      valueListenable: PotioAudioService.instance.soundEnabled,
+                      builder: (context, enabled, _) {
+                        return _SettingRow(
+                          icon: enabled ? Icons.volume_up : Icons.volume_off,
+                          title: 'Sound Effects',
+                          value: enabled ? 'On' : 'Off',
+                          onTap: () async {
+                            await PotioAudioService.instance.toggleSound();
+
+                            await _saveProgress(
+                              _progress.setSoundEnabled(
+                                PotioAudioService.instance.soundEnabled.value,
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    ),
+                    ValueListenableBuilder<bool>(
+                      valueListenable: PotioAudioService.instance.musicEnabled,
+                      builder: (context, enabled, _) {
+                        return _SettingRow(
+                          icon: enabled ? Icons.music_note : Icons.music_off,
+                          title: 'Music',
+                          value: enabled ? 'On' : 'Off',
+                          onTap: () async {
+                            await PotioAudioService.instance.toggleMusic();
+
+                            await _saveProgress(
+                              _progress.setMusicEnabled(
+                                PotioAudioService.instance.musicEnabled.value,
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    ),
+                    _SettingRow(
+                      icon: Icons.language,
+                      title: 'Language',
+                      value: _progress.selectedLanguageCode.toUpperCase(),
+                    ),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      child: FilledButton(
+                        style: FilledButton.styleFrom(
+                          backgroundColor: potioEmerald,
+                          foregroundColor: potioPaper,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                        ),
+                        onPressed: () {
+                          PotioAudioService.instance.playTap();
+
+                          if (sheetContext.mounted) {
+                            Navigator.pop(sheetContext);
+                          }
+                        },
+                        child: const Text(
+                          'Done',
+                          style: TextStyle(fontWeight: FontWeight.w900),
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              },
             ),
           ),
         );
@@ -212,16 +315,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  void _cycleUnits() {
+    final nextUnit = switch (_progress.selectedUnitSystem) {
+      'ml' => 'oz',
+      'oz' => 'cl',
+      _ => 'ml',
+    };
+
+    _saveProgress(
+      _progress.setUnitSystem(nextUnit),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    const playerTitle = 'Beginner Bartender';
-    const playerLevel = 1;
-    const completedLevels = 0;
-    const totalBasicLevels = 20;
-    const unlockedAchievements = 0;
-    const totalAchievements = 4;
-    const favouriteDrinks = 0;
-    const currentUnits = 'ml';
+    if (_loading) {
+      return const PotioScaffold(
+        child: Center(
+          child: CircularProgressIndicator(
+            color: potioCopperLight,
+          ),
+        ),
+      );
+    }
 
     return PotioScaffold(
       child: Padding(
@@ -298,7 +414,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          playerName,
+                          _progress.playerName,
                           style: const TextStyle(
                             color: potioInk,
                             fontSize: 26,
@@ -306,16 +422,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                         ),
                         const SizedBox(height: 4),
-                        const Text(
-                          playerTitle,
-                          style: TextStyle(
+                        Text(
+                          premiumActive
+                              ? 'Premium Bartender'
+                              : 'Beginner Bartender',
+                          style: const TextStyle(
                             color: potioMutedInk,
                             fontWeight: FontWeight.w800,
                           ),
                         ),
                         const SizedBox(height: 8),
                         GestureDetector(
-                          onTap: _editName,
+                          onTap: () {
+                            PotioAudioService.instance.playTap();
+                            _editName();
+                          },
                           child: const Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
@@ -348,9 +469,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       color: potioEmerald.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(999),
                     ),
-                    child: const Text(
-                      'LVL $playerLevel',
-                      style: TextStyle(
+                    child: Text(
+                      'LVL ${_progress.level}',
+                      style: const TextStyle(
                         color: potioEmerald,
                         fontWeight: FontWeight.w900,
                       ),
@@ -360,41 +481,41 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ),
             const SizedBox(height: 18),
-            const Row(
+            Row(
               children: [
                 Expanded(
                   child: PotioStatPill(
                     icon: Icons.route_outlined,
-                    value: '$completedLevels/$totalBasicLevels',
+                    value: '${_progress.completedBasicLevels}/20',
                     label: 'Levels done',
                   ),
                 ),
-                SizedBox(width: 10),
+                const SizedBox(width: 10),
                 Expanded(
                   child: PotioStatPill(
                     icon: Icons.emoji_events_outlined,
-                    value: '$unlockedAchievements/$totalAchievements',
+                    value: '$unlockedAchievements/${allAchievements.length}',
                     label: 'Achievements',
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 10),
-            const Row(
+            Row(
               children: [
                 Expanded(
                   child: PotioStatPill(
                     icon: Icons.favorite_border,
-                    value: '$favouriteDrinks',
+                    value: '${_progress.favouriteDrinkIds.length}',
                     label: 'Favourites',
                   ),
                 ),
-                SizedBox(width: 10),
+                const SizedBox(width: 10),
                 Expanded(
                   child: PotioStatPill(
-                    icon: Icons.straighten_outlined,
-                    value: currentUnits,
-                    label: 'Recipe units',
+                    icon: Icons.bolt_outlined,
+                    value: '${_progress.totalXp}',
+                    label: 'XP',
                   ),
                 ),
               ],
@@ -405,7 +526,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               icon: Icons.emoji_events_outlined,
               title: 'Achievements',
               subtitle:
-                  'View detailed achievement progress such as 0/1, 0/3, and 0/5.',
+                  'View achievement progress, rewards, avatars, and frames.',
               onTap: () => _openScreen(context, const AchievementsScreen()),
             ),
             const SizedBox(height: 12),
@@ -453,46 +574,57 @@ class _SettingRow extends StatelessWidget {
   final IconData icon;
   final String title;
   final String value;
+  final VoidCallback? onTap;
 
   const _SettingRow({
     required this.icon,
     required this.title,
     required this.value,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
+      child: Material(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: potioMutedInk.withValues(alpha: 0.12),
-        ),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: potioEmerald),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              title,
-              style: const TextStyle(
-                color: potioInk,
-                fontWeight: FontWeight.w900,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(20),
+          onTap: onTap,
+          child: Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: potioMutedInk.withValues(alpha: 0.12),
               ),
             ),
-          ),
-          Text(
-            value,
-            style: const TextStyle(
-              color: potioMutedInk,
-              fontWeight: FontWeight.w800,
+            child: Row(
+              children: [
+                Icon(icon, color: potioEmerald),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: const TextStyle(
+                      color: potioInk,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+                Text(
+                  value,
+                  style: const TextStyle(
+                    color: potioMutedInk,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }
