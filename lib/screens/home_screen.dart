@@ -39,6 +39,30 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
+  Future<void> _tapAndOpen(BuildContext context, Widget screen) async {
+    await PotioAudioService.instance.playTap();
+
+    if (!context.mounted) return;
+
+    _openScreen(context, screen);
+  }
+
+  Future<void> _tapAndOpenLanguage(BuildContext context) async {
+    await PotioAudioService.instance.playTap();
+
+    if (!context.mounted) return;
+
+    _openLanguageSelector(context);
+  }
+
+  Future<void> _tapAndOpenPremium(BuildContext context) async {
+    await PotioAudioService.instance.playTap();
+
+    if (!context.mounted) return;
+
+    _openPremium(context);
+  }
+
   @override
   Widget build(BuildContext context) {
     return PotioScaffold(
@@ -51,13 +75,13 @@ class HomeScreen extends StatelessWidget {
                 _TopRoundButton(
                   icon: Icons.language,
                   label: 'EN',
-                  onTap: () => _openLanguageSelector(context),
+                  onTap: () => _tapAndOpenLanguage(context),
                 ),
                 const SizedBox(width: 10),
                 const SoundToggleButton(),
                 const Spacer(),
                 _PremiumCornerButton(
-                  onTap: () => _openPremium(context),
+                  onTap: () => _tapAndOpenPremium(context),
                 ),
               ],
             ),
@@ -77,7 +101,10 @@ class HomeScreen extends StatelessWidget {
               icon: Icons.route_outlined,
               title: 'Basic Bar Academy',
               subtitle: '20 levels built around 50 popular drinks.',
-              onTap: () => _openScreen(context, const PotioCampaignScreen()),
+              onTap: () => _tapAndOpen(
+                context,
+                const PotioCampaignScreen(),
+              ),
             ),
             const SizedBox(height: 12),
             PotioCard(
@@ -86,7 +113,10 @@ class HomeScreen extends StatelessWidget {
               title: 'Full Recipe Cards',
               subtitle:
                   'Glass, ice, method, garnish, taste profile, allergens, ingredients, and steps.',
-              onTap: () => _openScreen(context, const EncyclopediaScreen()),
+              onTap: () => _tapAndOpen(
+                context,
+                const EncyclopediaScreen(),
+              ),
             ),
             const SizedBox(height: 12),
             PotioCard(
@@ -94,8 +124,10 @@ class HomeScreen extends StatelessWidget {
               icon: Icons.calendar_month_outlined,
               title: 'Daily Mixology',
               subtitle: 'One XP reward per day, replayable for practice.',
-              onTap: () =>
-                  _openScreen(context, const DailyMixologyChallengeScreen()),
+              onTap: () => _tapAndOpen(
+                context,
+                const DailyMixologyChallengeScreen(),
+              ),
             ),
             const SizedBox(height: 12),
             PotioCard(
@@ -104,7 +136,10 @@ class HomeScreen extends StatelessWidget {
               title: 'Practice Bar',
               subtitle:
                   'Recipe Guess, Picture Match, Build the Drink, Mixology Trivia, and more.',
-              onTap: () => _openScreen(context, const PlayScreen()),
+              onTap: () => _tapAndOpen(
+                context,
+                const PlayScreen(),
+              ),
             ),
           ],
         ),
@@ -158,10 +193,7 @@ class _TopRoundButton extends StatelessWidget {
       borderRadius: BorderRadius.circular(999),
       child: InkWell(
         borderRadius: BorderRadius.circular(999),
-        onTap: () async {
-          await PotioAudioService.instance.playTap();
-          onTap();
-        },
+        onTap: onTap,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 9),
           child: Row(
@@ -199,10 +231,7 @@ class _PremiumCornerButton extends StatelessWidget {
       borderRadius: BorderRadius.circular(999),
       child: InkWell(
         borderRadius: BorderRadius.circular(999),
-        onTap: () async {
-          await PotioAudioService.instance.playTap();
-          onTap();
-        },
+        onTap: onTap,
         child: const Padding(
           padding: EdgeInsets.symmetric(horizontal: 13, vertical: 9),
           child: Row(
@@ -259,21 +288,21 @@ class _LanguageSheet extends StatelessWidget {
           ),
           const SizedBox(height: 14),
           _LanguageOption(
-            flag: '🇬🇧',
+            code: 'EN',
             title: 'English',
             subtitle: 'Current language',
             selected: true,
             onTap: () => Navigator.pop(context),
           ),
           _LanguageOption(
-            flag: '🇺🇦',
+            code: 'UA',
             title: 'Українська',
             subtitle: 'Coming soon',
             selected: false,
             onTap: () => Navigator.pop(context),
           ),
           _LanguageOption(
-            flag: '🇷🇺',
+            code: 'RU',
             title: 'Русский',
             subtitle: 'Coming soon',
             selected: false,
@@ -286,14 +315,14 @@ class _LanguageSheet extends StatelessWidget {
 }
 
 class _LanguageOption extends StatelessWidget {
-  final String flag;
+  final String code;
   final String title;
   final String subtitle;
   final bool selected;
   final VoidCallback onTap;
 
   const _LanguageOption({
-    required this.flag,
+    required this.code,
     required this.title,
     required this.subtitle,
     required this.selected,
@@ -307,7 +336,31 @@ class _LanguageOption extends StatelessWidget {
         await PotioAudioService.instance.playTap();
         onTap();
       },
-      leading: Text(flag, style: const TextStyle(fontSize: 26)),
+      leading: Container(
+        width: 42,
+        height: 42,
+        decoration: BoxDecoration(
+          color: selected
+              ? potioEmerald.withValues(alpha: 0.12)
+              : potioMutedInk.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: selected
+                ? potioEmerald.withValues(alpha: 0.35)
+                : potioMutedInk.withValues(alpha: 0.16),
+          ),
+        ),
+        child: Center(
+          child: Text(
+            code,
+            style: TextStyle(
+              color: selected ? potioEmerald : potioMutedInk,
+              fontSize: 12,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        ),
+      ),
       title: Text(
         title,
         style: const TextStyle(

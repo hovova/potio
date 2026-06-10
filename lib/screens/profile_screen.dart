@@ -181,151 +181,208 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _openSettings() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (sheetContext) {
-        return Container(
-          padding: const EdgeInsets.fromLTRB(20, 18, 20, 28),
-          decoration: const BoxDecoration(
-            color: potioPaper,
-            borderRadius: BorderRadius.vertical(
-              top: Radius.circular(32),
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: Colors.transparent,
+    isScrollControlled: true,
+    builder: (sheetContext) {
+      return StatefulBuilder(
+        builder: (modalContext, setModalState) {
+          return Container(
+            padding: const EdgeInsets.fromLTRB(20, 18, 20, 28),
+            decoration: const BoxDecoration(
+              color: potioPaper,
+              borderRadius: BorderRadius.vertical(
+                top: Radius.circular(32),
+              ),
             ),
-          ),
-          child: SafeArea(
-            top: false,
-            child: ValueListenableBuilder<bool>(
-              valueListenable: potioPremiumActiveNotifier,
-              builder: (context, debugPremiumActive, _) {
-                final activePremium = _progress.hasPremium || debugPremiumActive;
+            child: SafeArea(
+              top: false,
+              child: ValueListenableBuilder<bool>(
+                valueListenable: potioPremiumActiveNotifier,
+                builder: (context, debugPremiumActive, _) {
+                  final activePremium =
+                      _progress.hasPremium || debugPremiumActive;
 
-                return Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const _SheetHandle(),
-                    const SizedBox(height: 18),
-                    const Icon(
-                      Icons.settings,
-                      color: potioEmerald,
-                      size: 38,
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Settings',
-                      style: TextStyle(
-                        color: potioInk,
-                        fontSize: 26,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                    const SizedBox(height: 18),
-                    _SettingRow(
-                      icon: activePremium
-                          ? Icons.verified
-                          : Icons.workspace_premium,
-                      title: 'Premium Status',
-                      value: activePremium ? 'Active' : 'Not active',
-                    ),
-                    _SettingRow(
-                      icon: Icons.straighten,
-                      title: 'Recipe Units',
-                      value: _progress.selectedUnitSystem,
-                      onTap: () {
-                        PotioAudioService.instance.playTap();
-                        _cycleUnits();
-                      },
-                    ),
-                    ValueListenableBuilder<bool>(
-                      valueListenable: PotioAudioService.instance.soundEnabled,
-                      builder: (context, enabled, _) {
-                        return _SettingRow(
-                          icon: enabled ? Icons.volume_up : Icons.volume_off,
-                          title: 'Sound Effects',
-                          value: enabled ? 'On' : 'Off',
-                          onTap: () async {
-                            await PotioAudioService.instance.toggleSound();
-
-                            await _saveProgress(
-                              _progress.setSoundEnabled(
-                                PotioAudioService.instance.soundEnabled.value,
-                              ),
-                            );
-                          },
-                        );
-                      },
-                    ),
-                    ValueListenableBuilder<bool>(
-                      valueListenable: PotioAudioService.instance.musicEnabled,
-                      builder: (context, enabled, _) {
-                        return _SettingRow(
-                          icon: enabled ? Icons.music_note : Icons.music_off,
-                          title: 'Music',
-                          value: enabled ? 'On' : 'Off',
-                          onTap: () async {
-                            await PotioAudioService.instance.toggleMusic();
-
-                            await _saveProgress(
-                              _progress.setMusicEnabled(
-                                PotioAudioService.instance.musicEnabled.value,
-                              ),
-                            );
-                          },
-                        );
-                      },
-                    ),
-                    _SettingRow(
-                      icon: Icons.language,
-                      title: 'Language',
-                      value: _progress.selectedLanguageCode.toUpperCase(),
-                    ),
-                    const SizedBox(height: 16),
-                    SizedBox(
-                      width: double.infinity,
-                      child: FilledButton(
-                        style: FilledButton.styleFrom(
-                          backgroundColor: potioEmerald,
-                          foregroundColor: potioPaper,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(999),
+                  return SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const _SheetHandle(),
+                        const SizedBox(height: 18),
+                        const Icon(
+                          Icons.settings,
+                          color: potioEmerald,
+                          size: 38,
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Settings',
+                          style: TextStyle(
+                            color: potioInk,
+                            fontSize: 26,
+                            fontWeight: FontWeight.w900,
                           ),
                         ),
-                        onPressed: () {
-                          PotioAudioService.instance.playTap();
-
-                          if (sheetContext.mounted) {
-                            Navigator.pop(sheetContext);
-                          }
-                        },
-                        child: const Text(
-                          'Done',
-                          style: TextStyle(fontWeight: FontWeight.w900),
+                        const SizedBox(height: 18),
+                        _SettingRow(
+                          icon: activePremium
+                              ? Icons.verified
+                              : Icons.workspace_premium,
+                          title: 'Premium Status',
+                          value: activePremium ? 'Active' : 'Not active',
                         ),
-                      ),
+                        _UnitDropdownRow(
+                          value: _progress.selectedUnitSystem,
+                          onChanged: (unit) async {
+                            if (unit == null) return;
+
+                            await PotioAudioService.instance.playTap();
+
+                            final updatedProgress =
+                                _progress.setUnitSystem(unit);
+
+                            setModalState(() {
+                              _progress = updatedProgress;
+                            });
+
+                            if (mounted) {
+                              setState(() {
+                                _progress = updatedProgress;
+                              });
+                            }
+
+                            await _storage.saveProgress(updatedProgress);
+                          },
+                        ),
+                        ValueListenableBuilder<bool>(
+                          valueListenable:
+                              PotioAudioService.instance.soundEnabled,
+                          builder: (context, enabled, _) {
+                            return _SettingRow(
+                              icon:
+                                  enabled ? Icons.volume_up : Icons.volume_off,
+                              title: 'Sound Effects',
+                              value: enabled ? 'On' : 'Off',
+                              onTap: () async {
+                                await PotioAudioService.instance.toggleSound();
+
+                                final updatedProgress =
+                                    _progress.setSoundEnabled(
+                                  PotioAudioService
+                                      .instance.soundEnabled.value,
+                                );
+
+                                setModalState(() {
+                                  _progress = updatedProgress;
+                                });
+
+                                if (mounted) {
+                                  setState(() {
+                                    _progress = updatedProgress;
+                                  });
+                                }
+
+                                await _storage.saveProgress(updatedProgress);
+                              },
+                            );
+                          },
+                        ),
+                        ValueListenableBuilder<bool>(
+                          valueListenable:
+                              PotioAudioService.instance.musicEnabled,
+                          builder: (context, enabled, _) {
+                            return _SettingRow(
+                              icon: enabled
+                                  ? Icons.music_note
+                                  : Icons.music_off,
+                              title: 'Music',
+                              value: enabled ? 'On' : 'Off',
+                              onTap: () async {
+                                await PotioAudioService.instance.toggleMusic();
+
+                                final updatedProgress =
+                                    _progress.setMusicEnabled(
+                                  PotioAudioService
+                                      .instance.musicEnabled.value,
+                                );
+
+                                setModalState(() {
+                                  _progress = updatedProgress;
+                                });
+
+                                if (mounted) {
+                                  setState(() {
+                                    _progress = updatedProgress;
+                                  });
+                                }
+
+                                await _storage.saveProgress(updatedProgress);
+                              },
+                            );
+                          },
+                        ),
+                        _LanguageDropdownRow(
+                          value: _progress.selectedLanguageCode,
+                          onChanged: (languageCode) async {
+                            if (languageCode == null) return;
+
+                            await PotioAudioService.instance.playTap();
+
+                            final updatedProgress =
+                                _progress.setLanguage(languageCode);
+
+                            setModalState(() {
+                              _progress = updatedProgress;
+                            });
+
+                            if (mounted) {
+                              setState(() {
+                                _progress = updatedProgress;
+                              });
+                            }
+
+                            await _storage.saveProgress(updatedProgress);
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                        SizedBox(
+                          width: double.infinity,
+                          child: FilledButton(
+                            style: FilledButton.styleFrom(
+                              backgroundColor: potioEmerald,
+                              foregroundColor: potioPaper,
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(999),
+                              ),
+                            ),
+                            onPressed: () {
+                              PotioAudioService.instance.playTap();
+
+                              if (sheetContext.mounted) {
+                                Navigator.pop(sheetContext);
+                              }
+                            },
+                            child: const Text(
+                              'Done',
+                              style: TextStyle(fontWeight: FontWeight.w900),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                );
-              },
+                  );
+                },
+              ),
             ),
-          ),
-        );
-      },
-    );
-  }
-
-  void _cycleUnits() {
-    final nextUnit = switch (_progress.selectedUnitSystem) {
-      'ml' => 'oz',
-      'oz' => 'cl',
-      _ => 'ml',
-    };
-
-    _saveProgress(
-      _progress.setUnitSystem(nextUnit),
-    );
-  }
+          );
+        },
+      );
+    },
+  );
+}
 
   @override
   Widget build(BuildContext context) {
@@ -565,6 +622,150 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _UnitDropdownRow extends StatelessWidget {
+  final String value;
+  final ValueChanged<String?> onChanged;
+
+  const _UnitDropdownRow({
+    required this.value,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final safeValue = value == 'cl' ? 'cl' : 'ml';
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: potioMutedInk.withValues(alpha: 0.12),
+        ),
+      ),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.straighten,
+            color: potioEmerald,
+          ),
+          const SizedBox(width: 12),
+          const Expanded(
+            child: Text(
+              'Recipe Units',
+              style: TextStyle(
+                color: potioInk,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ),
+          DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: safeValue,
+              borderRadius: BorderRadius.circular(18),
+              dropdownColor: potioPaper,
+              iconEnabledColor: potioEmerald,
+              style: const TextStyle(
+                color: potioInk,
+                fontWeight: FontWeight.w900,
+              ),
+              items: const [
+                DropdownMenuItem(
+                  value: 'ml',
+                  child: Text('ml'),
+                ),
+                DropdownMenuItem(
+                  value: 'cl',
+                  child: Text('cl'),
+                ),
+              ],
+              onChanged: onChanged,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _LanguageDropdownRow extends StatelessWidget {
+  final String value;
+  final ValueChanged<String?> onChanged;
+
+  const _LanguageDropdownRow({
+    required this.value,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final safeValue = switch (value) {
+      'uk' => 'uk',
+      'ru' => 'ru',
+      _ => 'en',
+    };
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: potioMutedInk.withValues(alpha: 0.12),
+        ),
+      ),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.language,
+            color: potioEmerald,
+          ),
+          const SizedBox(width: 12),
+          const Expanded(
+            child: Text(
+              'Language',
+              style: TextStyle(
+                color: potioInk,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ),
+          DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: safeValue,
+              borderRadius: BorderRadius.circular(18),
+              dropdownColor: potioPaper,
+              iconEnabledColor: potioEmerald,
+              style: const TextStyle(
+                color: potioInk,
+                fontWeight: FontWeight.w900,
+              ),
+              items: const [
+                DropdownMenuItem(
+                  value: 'en',
+                  child: Text('English'),
+                ),
+                DropdownMenuItem(
+                  value: 'uk',
+                  child: Text('Українська'),
+                ),
+                DropdownMenuItem(
+                  value: 'ru',
+                  child: Text('Русский'),
+                ),
+              ],
+              onChanged: onChanged,
+            ),
+          ),
+        ],
       ),
     );
   }

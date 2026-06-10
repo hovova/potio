@@ -1,5 +1,6 @@
 ﻿import 'package:flutter/material.dart';
 
+import '../services/audio_service.dart';
 import 'campaign_screen.dart';
 import 'encyclopedia_screen.dart';
 import 'home_screen.dart';
@@ -42,7 +43,11 @@ class _RootScreenState extends State<RootScreen> {
     });
   }
 
-  void onTabSelected(int index) {
+  Future<void> onTabSelected(int index) async {
+    await PotioAudioService.instance.playTap();
+
+    if (!mounted) return;
+
     setState(() {
       selectedIndex = index;
     });

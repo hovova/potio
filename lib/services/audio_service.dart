@@ -12,6 +12,9 @@ class PotioAudioService {
   final ValueNotifier<bool> soundEnabled = ValueNotifier<bool>(true);
   final ValueNotifier<bool> musicEnabled = ValueNotifier<bool>(true);
 
+  final ValueNotifier<double> soundVolume = ValueNotifier<double>(0.75);
+  final ValueNotifier<double> musicVolume = ValueNotifier<double>(0.25);
+
   bool _musicStarted = false;
 
   Future<void> playTap() async {
@@ -35,6 +38,7 @@ class PotioAudioService {
 
     try {
       await _sfxPlayer.stop();
+      await _sfxPlayer.setVolume(soundVolume.value);
       await _sfxPlayer.play(AssetSource(assetPath));
     } catch (error) {
       debugPrint('Sound effect failed: $error');
@@ -47,7 +51,7 @@ class PotioAudioService {
 
     try {
       await _musicPlayer.setReleaseMode(ReleaseMode.loop);
-      await _musicPlayer.setVolume(0.35);
+      await _musicPlayer.setVolume(musicVolume.value);
       await _musicPlayer.play(AssetSource('audio/background_music.mp3'));
       _musicStarted = true;
     } catch (error) {
@@ -80,6 +84,30 @@ class PotioAudioService {
     } else {
       await stopBackgroundMusic();
     }
+  }
+
+  Future<void> setSoundVolume(double value) async {
+    final clamped = value.clamp(0.0, 1.0);
+    soundVolume.value = clamped;
+    await _sfxPlayer.setVolume(clamped);
+
+    if (soundEnabled.value) {
+      await playTap();
+    }
+  }
+
+  Future<void> setMusicVolume(double value) async {
+    final clamped = value.clamp(0.0, 1.0);
+    musicVolume.value = clamped;
+    await _musicPlayer.setVolume(clamped);
+  }
+
+  int get soundVolumePercent {
+    return (soundVolume.value * 100).round();
+  }
+
+  int get musicVolumePercent {
+    return (musicVolume.value * 100).round();
   }
 
   Future<void> dispose() async {

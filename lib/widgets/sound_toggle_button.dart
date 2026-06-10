@@ -15,7 +15,11 @@ class SoundToggleButton extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (_) => const _SoundMenuSheet(),
+      isScrollControlled: true,
+      builder: (_) => const FractionallySizedBox(
+        heightFactor: 0.72,
+        child: _SoundMenuSheet(),
+      ),
     );
   }
 
@@ -77,96 +81,132 @@ class _SoundMenuSheet extends StatelessWidget {
       ),
       child: SafeArea(
         top: false,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 42,
-              height: 5,
-              decoration: BoxDecoration(
-                color: potioMutedInk.withValues(alpha: 0.35),
-                borderRadius: BorderRadius.circular(999),
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              Container(
+                width: 42,
+                height: 5,
+                decoration: BoxDecoration(
+                  color: potioMutedInk.withValues(alpha: 0.35),
+                  borderRadius: BorderRadius.circular(999),
+                ),
               ),
-            ),
-            const SizedBox(height: 18),
-            const Icon(
-              Icons.volume_up,
-              color: potioEmerald,
-              size: 38,
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Audio Settings',
-              style: TextStyle(
-                color: potioInk,
-                fontSize: 26,
-                fontWeight: FontWeight.w900,
+              const SizedBox(height: 18),
+              const Icon(
+                Icons.volume_up,
+                color: potioEmerald,
+                size: 38,
               ),
-            ),
-            const SizedBox(height: 18),
-            ValueListenableBuilder<bool>(
-              valueListenable: PotioAudioService.instance.soundEnabled,
-              builder: (context, enabled, _) {
-                return _AudioSettingTile(
-                  icon: enabled ? Icons.volume_up : Icons.volume_off,
-                  title: 'Sound Effects',
-                  subtitle: 'Button taps, correct/wrong answers, achievements',
-                  value: enabled,
-                  onChanged: (_) async {
-                    await PotioAudioService.instance.toggleSound();
+              const SizedBox(height: 8),
+              const Text(
+                'Audio Settings',
+                style: TextStyle(
+                  color: potioInk,
+                  fontSize: 26,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              const SizedBox(height: 18),
+              ValueListenableBuilder<bool>(
+                valueListenable: PotioAudioService.instance.soundEnabled,
+                builder: (context, enabled, _) {
+                  return _AudioSwitchTile(
+                    icon: enabled ? Icons.volume_up : Icons.volume_off,
+                    title: 'Sound Effects',
+                    subtitle:
+                        'Button taps, correct/wrong answers, achievements',
+                    value: enabled,
+                    onChanged: (_) async {
+                      await PotioAudioService.instance.toggleSound();
+                    },
+                  );
+                },
+              ),
+              const SizedBox(height: 10),
+              ValueListenableBuilder<double>(
+                valueListenable: PotioAudioService.instance.soundVolume,
+                builder: (context, volume, _) {
+                  return _VolumeSliderTile(
+                    icon: Icons.tune,
+                    title: 'Effects Volume',
+                    value: volume,
+                    onChanged: (value) async {
+                      await PotioAudioService.instance.setSoundVolume(value);
+                    },
+                  );
+                },
+              ),
+              const SizedBox(height: 10),
+              ValueListenableBuilder<bool>(
+                valueListenable: PotioAudioService.instance.musicEnabled,
+                builder: (context, enabled, _) {
+                  return _AudioSwitchTile(
+                    icon: enabled ? Icons.music_note : Icons.music_off,
+                    title: 'Background Music',
+                    subtitle: 'Potio background loop',
+                    value: enabled,
+                    onChanged: (_) async {
+                      await PotioAudioService.instance.toggleMusic();
+                    },
+                  );
+                },
+              ),
+              const SizedBox(height: 10),
+              ValueListenableBuilder<double>(
+                valueListenable: PotioAudioService.instance.musicVolume,
+                builder: (context, volume, _) {
+                  return _VolumeSliderTile(
+                    icon: Icons.graphic_eq,
+                    title: 'Music Volume',
+                    value: volume,
+                    onChanged: (value) async {
+                      await PotioAudioService.instance.setMusicVolume(value);
+                    },
+                  );
+                },
+              ),
+              const SizedBox(height: 18),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: potioEmerald,
+                    foregroundColor: potioPaper,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                  ),
+                  onPressed: () async {
+                    await PotioAudioService.instance.playTap();
+
+                    if (context.mounted) {
+                      Navigator.pop(context);
+                    }
                   },
-                );
-              },
-            ),
-            const SizedBox(height: 10),
-            ValueListenableBuilder<bool>(
-              valueListenable: PotioAudioService.instance.musicEnabled,
-              builder: (context, enabled, _) {
-                return _AudioSettingTile(
-                  icon: enabled ? Icons.music_note : Icons.music_off,
-                  title: 'Background Music',
-                  subtitle: 'Potio background loop',
-                  value: enabled,
-                  onChanged: (_) async {
-                    await PotioAudioService.instance.toggleMusic();
-                  },
-                );
-              },
-            ),
-            const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton(
-                style: FilledButton.styleFrom(
-                  backgroundColor: potioEmerald,
-                  foregroundColor: potioPaper,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(999),
+                  child: const Text(
+                    'Done',
+                    style: TextStyle(fontWeight: FontWeight.w900),
                   ),
                 ),
-                onPressed: () => Navigator.pop(context),
-                child: const Text(
-                  'Done',
-                  style: TextStyle(fontWeight: FontWeight.w900),
-                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 }
 
-class _AudioSettingTile extends StatelessWidget {
+class _AudioSwitchTile extends StatelessWidget {
   final IconData icon;
   final String title;
   final String subtitle;
   final bool value;
   final ValueChanged<bool> onChanged;
 
-  const _AudioSettingTile({
+  const _AudioSwitchTile({
     required this.icon,
     required this.title,
     required this.subtitle,
@@ -228,6 +268,74 @@ class _AudioSettingTile extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _VolumeSliderTile extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final double value;
+  final ValueChanged<double> onChanged;
+
+  const _VolumeSliderTile({
+    required this.icon,
+    required this.title,
+    required this.value,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final percent = (value * 100).round();
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(
+          color: potioMutedInk.withValues(alpha: 0.12),
+        ),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Icon(
+                icon,
+                color: potioEmerald,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  title,
+                  style: const TextStyle(
+                    color: potioInk,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+              Text(
+                '$percent%',
+                style: const TextStyle(
+                  color: potioEmerald,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ],
+          ),
+          Slider(
+            value: value,
+            min: 0,
+            max: 1,
+            divisions: 20,
+            activeColor: potioEmerald,
+            inactiveColor: potioEmerald.withValues(alpha: 0.18),
+            onChanged: onChanged,
+          ),
+        ],
       ),
     );
   }
