@@ -288,21 +288,21 @@ class _LanguageSheet extends StatelessWidget {
           ),
           const SizedBox(height: 14),
           _LanguageOption(
-            code: 'EN',
+            flag: '🇬🇧',
             title: 'English',
             subtitle: 'Current language',
             selected: true,
             onTap: () => Navigator.pop(context),
           ),
           _LanguageOption(
-            code: 'UA',
+            flag: '🇺🇦',
             title: 'Українська',
             subtitle: 'Coming soon',
             selected: false,
             onTap: () => Navigator.pop(context),
           ),
           _LanguageOption(
-            code: 'RU',
+            flag: '🇷🇺',
             title: 'Русский',
             subtitle: 'Coming soon',
             selected: false,
@@ -315,14 +315,14 @@ class _LanguageSheet extends StatelessWidget {
 }
 
 class _LanguageOption extends StatelessWidget {
-  final String code;
+  final String flag;
   final String title;
   final String subtitle;
   final bool selected;
   final VoidCallback onTap;
 
   const _LanguageOption({
-    required this.code,
+    required this.flag,
     required this.title,
     required this.subtitle,
     required this.selected,
@@ -336,30 +336,9 @@ class _LanguageOption extends StatelessWidget {
         await PotioAudioService.instance.playTap();
         onTap();
       },
-      leading: Container(
-        width: 42,
-        height: 42,
-        decoration: BoxDecoration(
-          color: selected
-              ? potioEmerald.withValues(alpha: 0.12)
-              : potioMutedInk.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: selected
-                ? potioEmerald.withValues(alpha: 0.35)
-                : potioMutedInk.withValues(alpha: 0.16),
-          ),
-        ),
-        child: Center(
-          child: Text(
-            code,
-            style: TextStyle(
-              color: selected ? potioEmerald : potioMutedInk,
-              fontSize: 12,
-              fontWeight: FontWeight.w900,
-            ),
-          ),
-        ),
+      leading: Text(
+        flag,
+        style: const TextStyle(fontSize: 26),
       ),
       title: Text(
         title,

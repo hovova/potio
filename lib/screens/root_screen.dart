@@ -21,9 +21,9 @@ class _RootScreenState extends State<RootScreen> {
 
   final screens = const [
     HomeScreen(),
-    PotioCampaignScreen(),
-    EncyclopediaScreen(),
     PlayScreen(),
+    EncyclopediaScreen(),
+    PotioCampaignScreen(),
     ProfileScreen(),
   ];
 
@@ -96,9 +96,9 @@ class _RootScreenState extends State<RootScreen> {
               label: 'Home',
             ),
             NavigationDestination(
-              icon: Icon(Icons.route_outlined, color: Color(0xFF2A160E)),
-              selectedIcon: Icon(Icons.route, color: Color(0xFF1F6F5B)),
-              label: 'Academy',
+              icon: Icon(Icons.extension_outlined, color: Color(0xFF2A160E)),
+              selectedIcon: Icon(Icons.extension, color: Color(0xFF1F6F5B)),
+              label: 'Play',
             ),
             NavigationDestination(
               icon: Icon(Icons.menu_book_outlined, color: Color(0xFF2A160E)),
@@ -106,9 +106,9 @@ class _RootScreenState extends State<RootScreen> {
               label: 'Drinks',
             ),
             NavigationDestination(
-              icon: Icon(Icons.extension_outlined, color: Color(0xFF2A160E)),
-              selectedIcon: Icon(Icons.extension, color: Color(0xFF1F6F5B)),
-              label: 'Play',
+              icon: Icon(Icons.route_outlined, color: Color(0xFF2A160E)),
+              selectedIcon: Icon(Icons.route, color: Color(0xFF1F6F5B)),
+              label: 'Academy',
             ),
             NavigationDestination(
               icon: Icon(Icons.person_outline, color: Color(0xFF2A160E)),
