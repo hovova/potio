@@ -1,6 +1,10 @@
 ﻿import 'package:flutter/material.dart';
 
+import '../data/app_text.dart';
+import '../models/player_progress.dart';
 import '../services/audio_service.dart';
+import '../services/language_service.dart';
+import '../services/progress_storage_service.dart';
 import '../widgets/potio_card.dart';
 import '../widgets/sound_toggle_button.dart';
 import 'campaign_screen.dart';
@@ -9,14 +13,64 @@ import 'encyclopedia_screen.dart';
 import 'play_screen.dart';
 import 'premium_screen.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  final ProgressStorageService _storage = ProgressStorageService();
+
+  PlayerProgress _progress = PlayerProgress.initial();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProgress();
+  }
+
+  Future<void> _loadProgress() async {
+    final loaded = await _storage.loadProgress();
+
+    LanguageService.instance.setLanguage(loaded.selectedLanguageCode);
+
+    if (!mounted) return;
+
+    setState(() {
+      _progress = loaded;
+    });
+  }
+
+  Future<void> _saveLanguage(String languageCode) async {
+    final updatedProgress = _progress.setLanguage(languageCode);
+
+    LanguageService.instance.setLanguage(languageCode);
+
+    if (!mounted) return;
+
+    setState(() {
+      _progress = updatedProgress;
+    });
+
+    await _storage.saveProgress(updatedProgress);
+  }
 
   void _openLanguageSelector(BuildContext context) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (_) => const _LanguageSheet(),
+      builder: (_) => _LanguageSheet(
+        selectedLanguageCode: _progress.selectedLanguageCode,
+        onChanged: (languageCode) async {
+          await _saveLanguage(languageCode);
+
+          if (context.mounted) {
+            Navigator.pop(context);
+          }
+        },
+      ),
     );
   }
 
@@ -63,93 +117,108 @@ class HomeScreen extends StatelessWidget {
     _openPremium(context);
   }
 
+  String _languageButtonLabel(String code) {
+    return switch (code) {
+      'uk' => 'UA',
+      'ru' => 'RU',
+      _ => 'EN',
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
-    return PotioScaffold(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: ListView(
-          children: [
-            Row(
+    return ValueListenableBuilder<String>(
+      valueListenable: LanguageService.instance.languageCode,
+      builder: (context, languageCode, _) {
+        return PotioScaffold(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: ListView(
               children: [
-                _TopRoundButton(
-                  icon: Icons.language,
-                  label: 'EN',
-                  onTap: () => _tapAndOpenLanguage(context),
+                Row(
+                  children: [
+                    _TopRoundButton(
+                      icon: Icons.language,
+                      label: _languageButtonLabel(languageCode),
+                      onTap: () => _tapAndOpenLanguage(context),
+                    ),
+                    const SizedBox(width: 10),
+                    const SoundToggleButton(),
+                    const Spacer(),
+                    _PremiumCornerButton(
+                      onTap: () => _tapAndOpenPremium(context),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 10),
-                const SoundToggleButton(),
-                const Spacer(),
-                _PremiumCornerButton(
-                  onTap: () => _tapAndOpenPremium(context),
+                const SizedBox(height: 14),
+                PotioPageHeader(
+                  eyebrow: AppText.get(languageCode, 'home_eyebrow'),
+                  title: AppText.get(languageCode, 'app_name'),
+                  subtitle: AppText.get(languageCode, 'home_subtitle'),
+                  icon: Icons.local_bar,
+                ),
+                const SizedBox(height: 12),
+                _StudioLabel(languageCode: languageCode),
+                const SizedBox(height: 18),
+                PotioCard(
+                  badge: AppText.get(languageCode, 'free_campaign'),
+                  icon: Icons.route_outlined,
+                  title: AppText.get(languageCode, 'basic_bar_academy'),
+                  subtitle: AppText.get(languageCode, 'basic_bar_subtitle'),
+                  onTap: () => _tapAndOpen(
+                    context,
+                    const PotioCampaignScreen(),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                PotioCard(
+                  badge: AppText.get(languageCode, 'encyclopedia'),
+                  icon: Icons.receipt_long_outlined,
+                  title: AppText.get(languageCode, 'recipe_cards'),
+                  subtitle: AppText.get(languageCode, 'recipe_cards_subtitle'),
+                  onTap: () => _tapAndOpen(
+                    context,
+                    const EncyclopediaScreen(),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                PotioCard(
+                  badge: AppText.get(languageCode, 'free_daily'),
+                  icon: Icons.calendar_month_outlined,
+                  title: AppText.get(languageCode, 'daily_mixology'),
+                  subtitle:
+                      AppText.get(languageCode, 'daily_mixology_subtitle'),
+                  onTap: () => _tapAndOpen(
+                    context,
+                    const DailyMixologyChallengeScreen(),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                PotioCard(
+                  badge: AppText.get(languageCode, 'all_modes'),
+                  icon: Icons.extension_outlined,
+                  title: AppText.get(languageCode, 'practice_bar'),
+                  subtitle: AppText.get(languageCode, 'practice_bar_subtitle'),
+                  onTap: () => _tapAndOpen(
+                    context,
+                    const PlayScreen(),
+                  ),
                 ),
               ],
             ),
-            const SizedBox(height: 14),
-            const PotioPageHeader(
-              eyebrow: 'Mixology academy',
-              title: 'Potio',
-              subtitle:
-                  'Learn drinks through recipes, ingredients, technique, glassware, and bartender-style quizzes.',
-              icon: Icons.local_bar,
-            ),
-            const SizedBox(height: 12),
-            const _StudioLabel(),
-            const SizedBox(height: 18),
-            PotioCard(
-              badge: 'Free campaign',
-              icon: Icons.route_outlined,
-              title: 'Basic Bar Academy',
-              subtitle: '20 levels built around 50 popular drinks.',
-              onTap: () => _tapAndOpen(
-                context,
-                const PotioCampaignScreen(),
-              ),
-            ),
-            const SizedBox(height: 12),
-            PotioCard(
-              badge: 'Encyclopedia',
-              icon: Icons.receipt_long_outlined,
-              title: 'Full Recipe Cards',
-              subtitle:
-                  'Glass, ice, method, garnish, taste profile, allergens, ingredients, and steps.',
-              onTap: () => _tapAndOpen(
-                context,
-                const EncyclopediaScreen(),
-              ),
-            ),
-            const SizedBox(height: 12),
-            PotioCard(
-              badge: 'Free daily',
-              icon: Icons.calendar_month_outlined,
-              title: 'Daily Mixology',
-              subtitle: 'One XP reward per day, replayable for practice.',
-              onTap: () => _tapAndOpen(
-                context,
-                const DailyMixologyChallengeScreen(),
-              ),
-            ),
-            const SizedBox(height: 12),
-            PotioCard(
-              badge: 'All modes',
-              icon: Icons.extension_outlined,
-              title: 'Practice Bar',
-              subtitle:
-                  'Recipe Guess, Picture Match, Build the Drink, Mixology Trivia, and more.',
-              onTap: () => _tapAndOpen(
-                context,
-                const PlayScreen(),
-              ),
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }
 
 class _StudioLabel extends StatelessWidget {
-  const _StudioLabel();
+  final String languageCode;
+
+  const _StudioLabel({
+    required this.languageCode,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -161,9 +230,9 @@ class _StudioLabel extends StatelessWidget {
           size: 18,
         ),
         const SizedBox(width: 7),
-        const Text(
-          'Created by Mriya Interactive',
-          style: TextStyle(
+        Text(
+          AppText.get(languageCode, 'created_by'),
+          style: const TextStyle(
             color: potioPaperDeep,
             fontSize: 13,
             fontWeight: FontWeight.w800,
@@ -256,65 +325,95 @@ class _PremiumCornerButton extends StatelessWidget {
 }
 
 class _LanguageSheet extends StatelessWidget {
-  const _LanguageSheet();
+  final String selectedLanguageCode;
+  final ValueChanged<String> onChanged;
+
+  const _LanguageSheet({
+    required this.selectedLanguageCode,
+    required this.onChanged,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(20, 18, 20, 28),
-      decoration: const BoxDecoration(
-        color: potioPaper,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 42,
-            height: 5,
-            decoration: BoxDecoration(
-              color: potioMutedInk.withValues(alpha: 0.35),
-              borderRadius: BorderRadius.circular(999),
-            ),
+    return ValueListenableBuilder<String>(
+      valueListenable: LanguageService.instance.languageCode,
+      builder: (context, languageCode, _) {
+        return Container(
+          padding: const EdgeInsets.fromLTRB(20, 18, 20, 28),
+          decoration: const BoxDecoration(
+            color: potioPaper,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
           ),
-          const SizedBox(height: 18),
-          const Text(
-            'Choose Language',
-            style: TextStyle(
-              color: potioInk,
-              fontSize: 24,
-              fontWeight: FontWeight.w900,
-            ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 42,
+                height: 5,
+                decoration: BoxDecoration(
+                  color: potioMutedInk.withValues(alpha: 0.35),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+              ),
+              const SizedBox(height: 18),
+              Text(
+                AppText.get(languageCode, 'choose_language'),
+                style: const TextStyle(
+                  color: potioInk,
+                  fontSize: 24,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              const SizedBox(height: 14),
+              _LanguageOption(
+                code: 'en',
+                flag: '🇬🇧',
+                title: AppText.get(languageCode, 'english'),
+                subtitle: selectedLanguageCode == 'en'
+                    ? AppText.get(languageCode, 'current_language')
+                    : '',
+                selected: selectedLanguageCode == 'en',
+                onTap: () async {
+                  await PotioAudioService.instance.playTap();
+                  onChanged('en');
+                },
+              ),
+              _LanguageOption(
+                code: 'uk',
+                flag: '🇺🇦',
+                title: AppText.get(languageCode, 'ukrainian'),
+                subtitle: selectedLanguageCode == 'uk'
+                    ? AppText.get(languageCode, 'current_language')
+                    : AppText.get(languageCode, 'coming_soon'),
+                selected: selectedLanguageCode == 'uk',
+                onTap: () async {
+                  await PotioAudioService.instance.playTap();
+                  onChanged('uk');
+                },
+              ),
+              _LanguageOption(
+                code: 'ru',
+                flag: '🇷🇺',
+                title: AppText.get(languageCode, 'russian'),
+                subtitle: selectedLanguageCode == 'ru'
+                    ? AppText.get(languageCode, 'current_language')
+                    : AppText.get(languageCode, 'coming_soon'),
+                selected: selectedLanguageCode == 'ru',
+                onTap: () async {
+                  await PotioAudioService.instance.playTap();
+                  onChanged('ru');
+                },
+              ),
+            ],
           ),
-          const SizedBox(height: 14),
-          _LanguageOption(
-            flag: '🇬🇧',
-            title: 'English',
-            subtitle: 'Current language',
-            selected: true,
-            onTap: () => Navigator.pop(context),
-          ),
-          _LanguageOption(
-            flag: '🇺🇦',
-            title: 'Українська',
-            subtitle: 'Coming soon',
-            selected: false,
-            onTap: () => Navigator.pop(context),
-          ),
-          _LanguageOption(
-            flag: '🇷🇺',
-            title: 'Русский',
-            subtitle: 'Coming soon',
-            selected: false,
-            onTap: () => Navigator.pop(context),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
 
 class _LanguageOption extends StatelessWidget {
+  final String code;
   final String flag;
   final String title;
   final String subtitle;
@@ -322,6 +421,7 @@ class _LanguageOption extends StatelessWidget {
   final VoidCallback onTap;
 
   const _LanguageOption({
+    required this.code,
     required this.flag,
     required this.title,
     required this.subtitle,
@@ -332,10 +432,7 @@ class _LanguageOption extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      onTap: () async {
-        await PotioAudioService.instance.playTap();
-        onTap();
-      },
+      onTap: onTap,
       leading: Text(
         flag,
         style: const TextStyle(fontSize: 26),
@@ -347,13 +444,15 @@ class _LanguageOption extends StatelessWidget {
           fontWeight: FontWeight.w900,
         ),
       ),
-      subtitle: Text(
-        subtitle,
-        style: const TextStyle(
-          color: potioMutedInk,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
+      subtitle: subtitle.isEmpty
+          ? null
+          : Text(
+              subtitle,
+              style: const TextStyle(
+                color: potioMutedInk,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
       trailing: selected
           ? const Icon(Icons.check_circle, color: potioEmerald)
           : const Icon(Icons.circle_outlined, color: potioMutedInk),

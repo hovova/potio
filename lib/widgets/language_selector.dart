@@ -13,28 +13,48 @@ class LanguageSelector extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const languages = [
-      ('en', '🇬🇧', 'English'),
-      ('uk', '🇺🇦', 'Українська'),
-      ('ru', '🇺🇦', 'Русский'),
+      _LanguageOption('en', '🇬🇧', 'English'),
+      _LanguageOption('uk', '🇺🇦', 'Українська'),
+      _LanguageOption('ru', '🇷🇺', 'Русский'),
     ];
 
     return Wrap(
       spacing: 8,
       runSpacing: 8,
       children: languages.map((language) {
-        final isSelected = selectedLanguageCode == language.$1;
+        final isSelected = selectedLanguageCode == language.code;
+
         return ChoiceChip(
           selected: isSelected,
-          label: Text('${language.$2} ${language.$3}'),
+          label: Text('${language.flag} ${language.name}'),
           selectedColor: const Color(0xFFFFCC7A),
           backgroundColor: const Color(0xFFFFF1D9).withValues(alpha: 0.10),
           labelStyle: TextStyle(
-            color: isSelected ? const Color(0xFF241109) : const Color(0xFFFFE2B8),
-            fontWeight: FontWeight.w700,
+            color: isSelected
+                ? const Color(0xFF241109)
+                : const Color(0xFFFFE2B8),
+            fontWeight: FontWeight.w800,
           ),
-          onSelected: (_) => onChanged(language.$1),
+          side: BorderSide(
+            color: isSelected
+                ? const Color(0xFFFFCC7A)
+                : const Color(0xFFFFE2B8).withValues(alpha: 0.18),
+          ),
+          onSelected: (_) => onChanged(language.code),
         );
       }).toList(),
     );
   }
+}
+
+class _LanguageOption {
+  final String code;
+  final String flag;
+  final String name;
+
+  const _LanguageOption(
+    this.code,
+    this.flag,
+    this.name,
+  );
 }
