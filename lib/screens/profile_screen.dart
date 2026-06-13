@@ -701,19 +701,6 @@ class _ProfileFrameStyle {
 
   factory _ProfileFrameStyle.fromId(String id) {
     switch (id) {
-      case 'welcome_frame':
-        return _ProfileFrameStyle(
-          gradient: LinearGradient(
-            colors: [
-              potioEmerald,
-              potioSage,
-            ],
-          ),
-          border: Border.all(
-            color: potioPaper,
-            width: 2,
-          ),
-        );
       case 'copper_frame':
         return _ProfileFrameStyle(
           gradient: LinearGradient(
@@ -806,23 +793,23 @@ class _ProfileFrameStyle {
             ),
           ],
         );
-      case 'premium_gold_frame':
+      case 'premium_platinum_frame':
         return _ProfileFrameStyle(
           gradient: LinearGradient(
             colors: [
-              Color(0xFFFFF0B8),
-              Color(0xFFFFC857),
-              potioCopper,
+              Color(0xFFFFFFFF),
+              Color(0xFFD8E4F0),
+              Color(0xFFB7C6D9),
             ],
           ),
           border: Border.all(
-            color: Color(0xFFFFF0B8),
+            color: Color(0xFFFFFFFF),
             width: 2,
           ),
           shadows: [
             BoxShadow(
-              color: Color(0xFFFFC857).withValues(alpha: 0.50),
-              blurRadius: 20,
+              color: Color(0xFFD8E4F0).withValues(alpha: 0.55),
+              blurRadius: 22,
             ),
           ],
         );

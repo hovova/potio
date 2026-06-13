@@ -366,7 +366,6 @@ class _LanguageSheet extends StatelessWidget {
               ),
               const SizedBox(height: 14),
               _LanguageOption(
-                code: 'en',
                 flag: '🇬🇧',
                 title: AppText.get(languageCode, 'english'),
                 subtitle: selectedLanguageCode == 'en'
@@ -379,12 +378,11 @@ class _LanguageSheet extends StatelessWidget {
                 },
               ),
               _LanguageOption(
-                code: 'uk',
                 flag: '🇺🇦',
                 title: AppText.get(languageCode, 'ukrainian'),
                 subtitle: selectedLanguageCode == 'uk'
                     ? AppText.get(languageCode, 'current_language')
-                    : AppText.get(languageCode, 'coming_soon'),
+                    : '',
                 selected: selectedLanguageCode == 'uk',
                 onTap: () async {
                   await PotioAudioService.instance.playTap();
@@ -392,12 +390,11 @@ class _LanguageSheet extends StatelessWidget {
                 },
               ),
               _LanguageOption(
-                code: 'ru',
                 flag: '🇷🇺',
                 title: AppText.get(languageCode, 'russian'),
                 subtitle: selectedLanguageCode == 'ru'
                     ? AppText.get(languageCode, 'current_language')
-                    : AppText.get(languageCode, 'coming_soon'),
+                    : '',
                 selected: selectedLanguageCode == 'ru',
                 onTap: () async {
                   await PotioAudioService.instance.playTap();
@@ -413,7 +410,6 @@ class _LanguageSheet extends StatelessWidget {
 }
 
 class _LanguageOption extends StatelessWidget {
-  final String code;
   final String flag;
   final String title;
   final String subtitle;
@@ -421,7 +417,6 @@ class _LanguageOption extends StatelessWidget {
   final VoidCallback onTap;
 
   const _LanguageOption({
-    required this.code,
     required this.flag,
     required this.title,
     required this.subtitle,

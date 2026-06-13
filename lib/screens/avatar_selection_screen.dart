@@ -101,15 +101,6 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
       unlockType: _UnlockType.free,
     ),
     _AvatarItem(
-      id: 'welcome_frame',
-      name: 'Welcome Frame',
-      subtitle: 'Unlocked when you first open Potio',
-      icon: Icons.verified_outlined,
-      unlockType: _UnlockType.achievement,
-      achievementId: AchievementIds.firstLogin,
-      unlockRequirement: 'Achievement: Welcome to Potio',
-    ),
-    _AvatarItem(
       id: 'copper_frame',
       name: 'Copper Frame',
       subtitle: 'Unlocked by completing your first quiz',
@@ -154,10 +145,10 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
       unlockRequirement: 'Requires Potio Premium',
     ),
     _AvatarItem(
-      id: 'premium_gold_frame',
-      name: 'Golden Premium Frame',
+      id: 'premium_platinum_frame',
+      name: 'Platinum Premium Frame',
       subtitle: 'Premium frame',
-      icon: Icons.star_border,
+      icon: Icons.diamond_outlined,
       unlockType: _UnlockType.premium,
       unlockRequirement: 'Requires Potio Premium',
     ),
@@ -885,19 +876,6 @@ class _FrameStyle {
 
   factory _FrameStyle.fromId(String id) {
     switch (id) {
-      case 'welcome_frame':
-        return _FrameStyle(
-          gradient: LinearGradient(
-            colors: [
-              potioEmerald,
-              potioSage,
-            ],
-          ),
-          border: Border.all(
-            color: potioPaper,
-            width: 2,
-          ),
-        );
       case 'copper_frame':
         return _FrameStyle(
           gradient: LinearGradient(
@@ -990,23 +968,23 @@ class _FrameStyle {
             ),
           ],
         );
-      case 'premium_gold_frame':
+            case 'premium_platinum_frame':
         return _FrameStyle(
           gradient: LinearGradient(
             colors: [
-              Color(0xFFFFF0B8),
-              Color(0xFFFFC857),
-              potioCopper,
+              Color(0xFFFFFFFF),
+              Color(0xFFD8E4F0),
+              Color(0xFFB7C6D9),
             ],
           ),
           border: Border.all(
-            color: Color(0xFFFFF0B8),
+            color: Color(0xFFFFFFFF),
             width: 2,
           ),
           shadows: [
             BoxShadow(
-              color: Color(0xFFFFC857).withValues(alpha: 0.50),
-              blurRadius: 20,
+              color: Color(0xFFD8E4F0).withValues(alpha: 0.55),
+              blurRadius: 22,
             ),
           ],
         );
