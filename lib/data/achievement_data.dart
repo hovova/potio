@@ -1,133 +1,104 @@
 import 'package:flutter/material.dart';
 
-class PotioAchievement {
-  final String id;
-  final String title;
-  final String subtitle;
-  final int current;
-  final int target;
-  final IconData icon;
-  final String? reward;
+import '../models/achievement.dart';
 
-  const PotioAchievement({
-    required this.id,
-    required this.title,
-    required this.subtitle,
-    required this.current,
-    required this.target,
-    required this.icon,
-    this.reward,
-  });
-
-  bool get unlocked => current >= target;
+class AchievementIds {
+  static const String firstLogin = 'first_login';
+  static const String firstQuiz = 'first_sip';
+  static const String recipeRookie = 'recipe_rookie';
+  static const String dailyRegular = 'daily_regular';
+  static const String academyStarter = 'academy_starter';
+  static const String collector = 'collector';
+  static const String perfectPour = 'perfect_pour';
+  static const String goldPour = 'gold_pour';
+  static const String basicCampaignComplete = 'basic_campaign_complete';
+  static const String diamondBar = 'diamond_bar';
+  static const String addFriend = 'add_friend';
+  static const String duelWin = 'duel_win';
 }
 
-const potioAchievements = [
-  PotioAchievement(
-    id: 'first_login',
+const List<Achievement> allAchievements = [
+  Achievement(
+    id: AchievementIds.firstLogin,
     title: 'Welcome to Potio',
-    subtitle: 'Open Potio for the first time.',
-    current: 1,
-    target: 1,
+    description: 'Open Potio for the first time.',
     icon: Icons.waving_hand,
-    reward: 'Unlocks Welcome Bartender avatar and Welcome Frame',
+    reward: 'Unlocks Welcome Bartender avatar',
   ),
-  PotioAchievement(
-    id: 'first_sip',
+  Achievement(
+    id: AchievementIds.firstQuiz,
     title: 'First Sip',
-    subtitle: 'Complete your first quiz.',
-    current: 0,
-    target: 1,
+    description: 'Complete your first quiz.',
     icon: Icons.local_bar,
     reward: 'Unlocks Copper Frame',
   ),
-  PotioAchievement(
-    id: 'recipe_rookie',
+  Achievement(
+    id: AchievementIds.recipeRookie,
     title: 'Recipe Rookie',
-    subtitle: 'Complete 5 recipe questions.',
-    current: 0,
-    target: 5,
+    description: 'Complete 5 recipe questions.',
     icon: Icons.receipt_long,
     reward: 'Unlocks Recipe Rookie avatar',
   ),
-  PotioAchievement(
-    id: 'daily_regular',
+  Achievement(
+    id: AchievementIds.dailyRegular,
     title: 'Daily Regular',
-    subtitle: 'Complete 3 Daily Mixology challenges.',
-    current: 0,
-    target: 3,
+    description: 'Complete 3 Daily Mixology challenges.',
     icon: Icons.calendar_month,
     reward: 'Unlocks Daily Regular avatar',
   ),
-  PotioAchievement(
-    id: 'academy_starter',
+  Achievement(
+    id: AchievementIds.academyStarter,
     title: 'Academy Starter',
-    subtitle: 'Complete 5 Basic Academy levels.',
-    current: 0,
-    target: 5,
+    description: 'Complete 5 Basic Academy levels.',
     icon: Icons.school,
     reward: 'Unlocks Academy Student avatar',
   ),
-  PotioAchievement(
-    id: 'collector',
+  Achievement(
+    id: AchievementIds.collector,
     title: 'Collector',
-    subtitle: 'Save 5 drinks to favourites.',
-    current: 0,
-    target: 5,
+    description: 'Save 5 drinks to favourites.',
     icon: Icons.favorite,
     reward: 'Unlocks Mint Frame',
   ),
-  PotioAchievement(
-    id: 'perfect_pour',
+  Achievement(
+    id: AchievementIds.perfectPour,
     title: 'Perfect Pour',
-    subtitle: 'Score 100% in any quiz mode.',
-    current: 0,
-    target: 1,
+    description: 'Score 100% in any quiz mode.',
     icon: Icons.workspace_premium,
     reward: 'Unlocks Perfect Pour avatar',
   ),
-  PotioAchievement(
-    id: 'gold_pour',
+  Achievement(
+    id: AchievementIds.goldPour,
     title: 'Gold Pour',
-    subtitle: 'Earn one gold award in a level.',
-    current: 0,
-    target: 1,
+    description: 'Earn one gold award in a level.',
     icon: Icons.emoji_events,
     reward: 'Unlocks Gold Award Frame',
   ),
-  PotioAchievement(
-    id: 'basic_campaign_complete',
+  Achievement(
+    id: AchievementIds.basicCampaignComplete,
     title: 'Basic Bar Graduate',
-    subtitle: 'Complete all 20 Basic Bar Academy levels.',
-    current: 0,
-    target: 20,
+    description: 'Complete all 20 Basic Bar Academy levels.',
     icon: Icons.route,
     reward: 'Unlocks Graduate Badge',
   ),
-  PotioAchievement(
-    id: 'diamond_bar',
+  Achievement(
+    id: AchievementIds.diamondBar,
     title: 'Diamond Bar',
-    subtitle: 'Earn gold on all Basic Academy levels.',
-    current: 0,
-    target: 20,
+    description: 'Earn gold on all Basic Academy levels.',
     icon: Icons.diamond,
     reward: 'Unlocks Diamond Bar Frame',
   ),
-  PotioAchievement(
-    id: 'add_friend',
+  Achievement(
+    id: AchievementIds.addFriend,
     title: 'First Bar Friend',
-    subtitle: 'Add one friend when multiplayer arrives.',
-    current: 0,
-    target: 1,
+    description: 'Add one friend when multiplayer arrives.',
     icon: Icons.person_add,
     reward: 'Coming soon with multiplayer',
   ),
-  PotioAchievement(
-    id: 'duel_win',
+  Achievement(
+    id: AchievementIds.duelWin,
     title: 'First Duel Win',
-    subtitle: 'Win your first multiplayer duel.',
-    current: 0,
-    target: 1,
+    description: 'Win your first multiplayer duel.',
     icon: Icons.sports_esports,
     reward: 'Coming soon with multiplayer',
   ),

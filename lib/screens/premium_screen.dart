@@ -1,10 +1,13 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import '../data/app_text.dart';
 import '../services/audio_service.dart';
+import '../services/language_service.dart';
 import '../widgets/potio_card.dart';
 
-final ValueNotifier<bool> potioPremiumActiveNotifier = ValueNotifier<bool>(false);
+final ValueNotifier<bool> potioPremiumActiveNotifier =
+    ValueNotifier<bool>(false);
 
 class PremiumScreen extends StatefulWidget {
   const PremiumScreen({super.key});
@@ -14,21 +17,21 @@ class PremiumScreen extends StatefulWidget {
 }
 
 class _PremiumScreenState extends State<PremiumScreen> {
-  Future<void> _showPurchaseComingSoon() async {
+  Future<void> _showPurchaseComingSoon(String languageCode) async {
     await PotioAudioService.instance.playTap();
 
     if (!mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
+      SnackBar(
         content: Text(
-          'Premium purchase will be connected to Google Play Billing later.',
+          AppText.get(languageCode, 'premium_purchase_coming_soon'),
         ),
       ),
     );
   }
 
-  Future<void> _toggleDeveloperPremium() async {
+  Future<void> _toggleDeveloperPremium(String languageCode) async {
     await PotioAudioService.instance.playTap();
 
     potioPremiumActiveNotifier.value = !potioPremiumActiveNotifier.value;
@@ -39,8 +42,8 @@ class _PremiumScreenState extends State<PremiumScreen> {
       SnackBar(
         content: Text(
           potioPremiumActiveNotifier.value
-              ? 'Developer mode: Premium unlocked.'
-              : 'Developer mode: Premium disabled.',
+              ? AppText.get(languageCode, 'developer_premium_unlocked')
+              : AppText.get(languageCode, 'developer_premium_disabled'),
         ),
       ),
     );
@@ -48,183 +51,247 @@ class _PremiumScreenState extends State<PremiumScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return PotioScaffold(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: ListView(
-          children: [
-            const PotioPageHeader(
-              eyebrow: 'Potio Premium',
-              title: 'Upgrade',
-              subtitle:
-                  'Compare the free learning experience with the full Master Mixologist version.',
-              icon: Icons.workspace_premium,
-            ),
-            const SizedBox(height: 18),
-            ValueListenableBuilder<bool>(
-              valueListenable: potioPremiumActiveNotifier,
-              builder: (context, premiumActive, _) {
-                return Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: premiumActive
-                        ? potioEmerald.withValues(alpha: 0.95)
-                        : potioDarkCoffee.withValues(alpha: 0.92),
-                    borderRadius: BorderRadius.circular(24),
-                    border: Border.all(
-                      color: premiumActive
-                          ? potioPaper.withValues(alpha: 0.28)
-                          : potioCopperLight.withValues(alpha: 0.18),
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        premiumActive
-                            ? Icons.verified
-                            : Icons.workspace_premium_outlined,
-                        color: premiumActive ? potioPaper : potioCopperLight,
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          premiumActive
-                              ? 'Premium Status: Active'
-                              : 'Premium Status: Not active',
-                          style: TextStyle(
-                            color: premiumActive ? potioPaper : potioPaperDeep,
-                            fontWeight: FontWeight.w900,
-                          ),
+    return ValueListenableBuilder<String>(
+      valueListenable: LanguageService.instance.languageCode,
+      builder: (context, languageCode, _) {
+        return PotioScaffold(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: ListView(
+              children: [
+                PotioPageHeader(
+                  eyebrow: AppText.get(languageCode, 'premium_eyebrow'),
+                  title: AppText.get(languageCode, 'premium_upgrade_title'),
+                  subtitle:
+                      AppText.get(languageCode, 'premium_upgrade_subtitle'),
+                  icon: Icons.workspace_premium,
+                ),
+                const SizedBox(height: 18),
+                ValueListenableBuilder<bool>(
+                  valueListenable: potioPremiumActiveNotifier,
+                  builder: (context, premiumActive, _) {
+                    return Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: premiumActive
+                            ? potioEmerald.withValues(alpha: 0.95)
+                            : potioDarkCoffee.withValues(alpha: 0.92),
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(
+                          color: premiumActive
+                              ? potioPaper.withValues(alpha: 0.28)
+                              : potioCopperLight.withValues(alpha: 0.18),
                         ),
                       ),
-                    ],
+                      child: Row(
+                        children: [
+                          Icon(
+                            premiumActive
+                                ? Icons.verified
+                                : Icons.workspace_premium_outlined,
+                            color:
+                                premiumActive ? potioPaper : potioCopperLight,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              '${AppText.get(languageCode, 'premium_status')}: ${premiumActive ? AppText.get(languageCode, 'active') : AppText.get(languageCode, 'not_active')}',
+                              style: TextStyle(
+                                color: premiumActive
+                                    ? potioPaper
+                                    : potioPaperDeep,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 18),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: _PlanCard(
+                        title: AppText.get(languageCode, 'free'),
+                        subtitle: AppText.get(languageCode, 'included'),
+                        features: [
+                          PlanFeature(
+                            AppText.get(languageCode, 'feature_50_drinks'),
+                          ),
+                          PlanFeature(
+                            AppText.get(languageCode, 'feature_basic_academy'),
+                          ),
+                          PlanFeature(
+                            AppText.get(languageCode, 'feature_daily_mixology'),
+                          ),
+                          PlanFeature(
+                            AppText.get(
+                              languageCode,
+                              'feature_all_quiz_modes',
+                            ),
+                          ),
+                          PlanFeature(
+                            AppText.get(
+                              languageCode,
+                              'feature_filters_favourites',
+                            ),
+                          ),
+                          PlanFeature(
+                            AppText.get(languageCode, 'feature_ads_included'),
+                          ),
+                          PlanFeature(
+                            AppText.get(languageCode, 'feature_100_drinks'),
+                            included: false,
+                          ),
+                          PlanFeature(
+                            AppText.get(languageCode, 'feature_master_academy'),
+                            included: false,
+                          ),
+                          PlanFeature(
+                            '${AppText.get(languageCode, 'feature_offline_access')} / ${AppText.get(languageCode, 'feature_no_ads')}',
+                            included: false,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: _PlanCard(
+                        title: AppText.get(languageCode, 'premium'),
+                        subtitle: AppText.get(languageCode, 'full_access'),
+                        highlighted: true,
+                        features: [
+                          PlanFeature(
+                            AppText.get(languageCode, 'feature_100_drinks'),
+                          ),
+                          PlanFeature(
+                            AppText.get(languageCode, 'feature_master_academy'),
+                          ),
+                          PlanFeature(
+                            AppText.get(
+                              languageCode,
+                              'full_bartender_guide',
+                            ),
+                          ),
+                          PlanFeature(
+                            AppText.get(languageCode, 'feature_offline_access'),
+                          ),
+                          PlanFeature(
+                            AppText.get(languageCode, 'feature_no_ads'),
+                          ),
+                          PlanFeature(
+                            AppText.get(languageCode, 'feature_future_packs'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 18),
+                FilledButton.icon(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: potioEmerald,
+                    foregroundColor: potioPaper,
+                    padding: const EdgeInsets.symmetric(vertical: 15),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(999),
+                    ),
                   ),
-                );
-              },
-            ),
-            const SizedBox(height: 18),
-            const Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: _PlanCard(
-                    title: 'Free',
-                    subtitle: 'Included',
-                    features: [
-                      PlanFeature('50 popular drinks'),
-                      PlanFeature('20-level Basic Academy'),
-                      PlanFeature('Daily Mixology'),
-                      PlanFeature('All quiz modes'),
-                      PlanFeature('Filters & favourites'),
-                      PlanFeature('Ads included'),
-                      PlanFeature('100+ drinks', included: false),
-                      PlanFeature('Master Academy', included: false),
-                      PlanFeature('Offline / no ads', included: false),
-                    ],
+                  onPressed: () => _showPurchaseComingSoon(languageCode),
+                  icon: const Icon(Icons.workspace_premium),
+                  label: Text(
+                    AppText.get(languageCode, 'unlock_potio_premium'),
+                    style: const TextStyle(fontWeight: FontWeight.w900),
                   ),
                 ),
-                SizedBox(width: 10),
-                Expanded(
-                  child: _PlanCard(
-                    title: 'Premium',
-                    subtitle: 'Full access',
-                    highlighted: true,
-                    features: [
-                      PlanFeature('100+ total drinks'),
-                      PlanFeature('Master Mixologist Academy'),
-                      PlanFeature('Full bartender guide'),
-                      PlanFeature('Offline access'),
-                      PlanFeature('No ads'),
-                      PlanFeature('Future premium packs'),
-                    ],
+                if (kDebugMode) ...[
+                  const SizedBox(height: 10),
+                  ValueListenableBuilder<bool>(
+                    valueListenable: potioPremiumActiveNotifier,
+                    builder: (context, premiumActive, _) {
+                      return OutlinedButton.icon(
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: potioCopperLight,
+                          side: const BorderSide(color: potioCopperLight),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                        ),
+                        onPressed: () =>
+                            _toggleDeveloperPremium(languageCode),
+                        icon: Icon(
+                          premiumActive
+                              ? Icons.lock_open
+                              : Icons.developer_mode,
+                        ),
+                        label: Text(
+                          premiumActive
+                              ? AppText.get(
+                                  languageCode,
+                                  'developer_disable_premium',
+                                )
+                              : AppText.get(
+                                  languageCode,
+                                  'developer_unlock_premium',
+                                ),
+                          style: const TextStyle(fontWeight: FontWeight.w900),
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    AppText.get(languageCode, 'debug_only_button'),
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: potioPaperDeep,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 12),
+                PotioCard(
+                  badge: AppText.get(languageCode, 'premium_unlocks'),
+                  icon: Icons.menu_book_outlined,
+                  title: AppText.get(languageCode, 'full_bartender_guide'),
+                  subtitle: AppText.get(
+                    languageCode,
+                    'full_bartender_guide_subtitle',
+                  ),
+                ),
+                const SizedBox(height: 12),
+                PotioCard(
+                  badge: AppText.get(languageCode, 'premium_campaign'),
+                  icon: Icons.route_outlined,
+                  title: AppText.get(
+                    languageCode,
+                    'master_mixologist_academy',
+                  ),
+                  subtitle: AppText.get(
+                    languageCode,
+                    'master_mixologist_academy_subtitle',
+                  ),
+                ),
+                const SizedBox(height: 12),
+                PotioCard(
+                  badge: AppText.get(languageCode, 'comfort'),
+                  icon: Icons.cloud_off_outlined,
+                  title: AppText.get(languageCode, 'offline_no_ads'),
+                  subtitle: AppText.get(
+                    languageCode,
+                    'offline_no_ads_subtitle',
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 18),
-            FilledButton.icon(
-              style: FilledButton.styleFrom(
-                backgroundColor: potioEmerald,
-                foregroundColor: potioPaper,
-                padding: const EdgeInsets.symmetric(vertical: 15),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(999),
-                ),
-              ),
-              onPressed: _showPurchaseComingSoon,
-              icon: const Icon(Icons.workspace_premium),
-              label: const Text(
-                'Unlock Potio Premium',
-                style: TextStyle(fontWeight: FontWeight.w900),
-              ),
-            ),
-            if (kDebugMode) ...[
-              const SizedBox(height: 10),
-              ValueListenableBuilder<bool>(
-                valueListenable: potioPremiumActiveNotifier,
-                builder: (context, premiumActive, _) {
-                  return OutlinedButton.icon(
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: potioCopperLight,
-                      side: const BorderSide(color: potioCopperLight),
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(999),
-                      ),
-                    ),
-                    onPressed: _toggleDeveloperPremium,
-                    icon: Icon(
-                      premiumActive
-                          ? Icons.lock_open
-                          : Icons.developer_mode,
-                    ),
-                    label: Text(
-                      premiumActive
-                          ? 'Developer: Disable Premium'
-                          : 'Developer: Unlock Premium',
-                      style: const TextStyle(fontWeight: FontWeight.w900),
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'Debug-only button. This will not appear in release builds.',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: potioPaperDeep,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ],
-            const SizedBox(height: 12),
-            const PotioCard(
-              badge: 'Premium unlocks',
-              icon: Icons.menu_book_outlined,
-              title: 'Full Bartender Guide',
-              subtitle:
-                  'Learn techniques, glassware, allergens, service knowledge, and advanced recipe logic.',
-            ),
-            const SizedBox(height: 12),
-            const PotioCard(
-              badge: 'Premium campaign',
-              icon: Icons.route_outlined,
-              title: 'Master Mixologist Academy',
-              subtitle:
-                  'A more advanced campaign built around 100+ drinks and bartender-style challenges.',
-            ),
-            const SizedBox(height: 12),
-            const PotioCard(
-              badge: 'Comfort',
-              icon: Icons.cloud_off_outlined,
-              title: 'Offline + No Ads',
-              subtitle:
-                  'Use the full encyclopedia offline and remove ads from the Potio experience.',
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }

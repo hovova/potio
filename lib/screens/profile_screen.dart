@@ -1,8 +1,10 @@
 ﻿import 'package:flutter/material.dart';
 
 import '../data/achievements.dart';
+import '../data/app_text.dart';
 import '../models/player_progress.dart';
 import '../services/audio_service.dart';
+import '../services/language_service.dart';
 import '../services/progress_storage_service.dart';
 import '../widgets/potio_card.dart';
 import 'achievements_screen.dart';
@@ -45,6 +47,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     PotioAudioService.instance.soundEnabled.value = loaded.soundEnabled;
     PotioAudioService.instance.musicEnabled.value = loaded.musicEnabled;
+    LanguageService.instance.setLanguage(loaded.selectedLanguageCode);
 
     if (loaded.hasPremium) {
       potioPremiumActiveNotifier.value = true;
@@ -68,14 +71,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
     await _storage.saveProgress(progress);
   }
 
-  void _openScreen(BuildContext context, Widget screen) {
+  Future<void> _openScreen(BuildContext context, Widget screen) async {
+    await PotioAudioService.instance.playTap();
+
+    if (!context.mounted) return;
+
     Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => screen),
     ).then((_) => _loadProgress());
   }
 
-  void _editName() {
+  void _editName(String languageCode) {
     final controller = TextEditingController(text: _progress.playerName);
 
     showModalBottomSheet(
@@ -97,9 +104,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
               children: [
                 const _SheetHandle(),
                 const SizedBox(height: 18),
-                const Text(
-                  'Edit Player Name',
-                  style: TextStyle(
+                Text(
+                  AppText.get(languageCode, 'edit_player_name'),
+                  style: const TextStyle(
                     color: potioInk,
                     fontSize: 24,
                     fontWeight: FontWeight.w900,
@@ -114,7 +121,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     fontWeight: FontWeight.w800,
                   ),
                   decoration: InputDecoration(
-                    labelText: 'Player name',
+                    labelText: AppText.get(languageCode, 'player_name'),
                     labelStyle: const TextStyle(
                       color: potioMutedInk,
                       fontWeight: FontWeight.w700,
@@ -166,9 +173,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         Navigator.pop(sheetContext);
                       }
                     },
-                    child: const Text(
-                      'Save Name',
-                      style: TextStyle(fontWeight: FontWeight.w900),
+                    child: Text(
+                      AppText.get(languageCode, 'save_name'),
+                      style: const TextStyle(fontWeight: FontWeight.w900),
                     ),
                   ),
                 ),
@@ -180,7 +187,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  void _openSettings() {
+  void _openSettings(String languageCode) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -216,9 +223,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             size: 38,
                           ),
                           const SizedBox(height: 8),
-                          const Text(
-                            'Settings',
-                            style: TextStyle(
+                          Text(
+                            AppText.get(languageCode, 'settings'),
+                            style: const TextStyle(
                               color: potioInk,
                               fontSize: 26,
                               fontWeight: FontWeight.w900,
@@ -229,10 +236,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             icon: activePremium
                                 ? Icons.verified
                                 : Icons.workspace_premium,
-                            title: 'Premium Status',
-                            value: activePremium ? 'Active' : 'Not active',
+                            title: AppText.get(languageCode, 'premium_status'),
+                            value: activePremium
+                                ? AppText.get(languageCode, 'active')
+                                : AppText.get(languageCode, 'not_active'),
                           ),
                           _UnitDropdownRow(
+                            languageCode: languageCode,
                             value: _progress.selectedUnitSystem,
                             onChanged: (unit) async {
                               if (unit == null) return;
@@ -263,8 +273,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 icon: enabled
                                     ? Icons.volume_up
                                     : Icons.volume_off,
-                                title: 'Sound Effects',
-                                value: enabled ? 'On' : 'Off',
+                                title: AppText.get(
+                                  languageCode,
+                                  'sound_effects',
+                                ),
+                                value: enabled
+                                    ? AppText.get(languageCode, 'on')
+                                    : AppText.get(languageCode, 'off'),
                                 onTap: () async {
                                   await PotioAudioService.instance.toggleSound();
 
@@ -297,8 +312,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 icon: enabled
                                     ? Icons.music_note
                                     : Icons.music_off,
-                                title: 'Music',
-                                value: enabled ? 'On' : 'Off',
+                                title: AppText.get(languageCode, 'music'),
+                                value: enabled
+                                    ? AppText.get(languageCode, 'on')
+                                    : AppText.get(languageCode, 'off'),
                                 onTap: () async {
                                   await PotioAudioService.instance.toggleMusic();
 
@@ -324,14 +341,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             },
                           ),
                           _LanguageDropdownRow(
+                            languageCode: languageCode,
                             value: _progress.selectedLanguageCode,
-                            onChanged: (languageCode) async {
-                              if (languageCode == null) return;
+                            onChanged: (newLanguageCode) async {
+                              if (newLanguageCode == null) return;
 
                               await PotioAudioService.instance.playTap();
 
                               final updatedProgress =
-                                  _progress.setLanguage(languageCode);
+                                  _progress.setLanguage(newLanguageCode);
+
+                              LanguageService.instance
+                                  .setLanguage(newLanguageCode);
 
                               setModalState(() {
                                 _progress = updatedProgress;
@@ -366,9 +387,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   Navigator.pop(sheetContext);
                                 }
                               },
-                              child: const Text(
-                                'Done',
-                                style: TextStyle(fontWeight: FontWeight.w900),
+                              child: Text(
+                                AppText.get(languageCode, 'done'),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w900,
+                                ),
                               ),
                             ),
                           ),
@@ -397,224 +420,251 @@ class _ProfileScreenState extends State<ProfileScreen> {
       );
     }
 
-    return PotioScaffold(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: ListView(
-          children: [
-            Container(
-              padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
-              decoration: BoxDecoration(
-                color: potioPaper,
-                borderRadius: BorderRadius.circular(28),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.18),
-                    blurRadius: 18,
-                    offset: const Offset(0, 10),
-                  ),
-                ],
-              ),
-              child: const Row(
-                children: [
-                  Icon(
-                    Icons.person,
-                    color: potioEmerald,
-                    size: 28,
-                  ),
-                  SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'BARTENDER PROFILE',
-                      style: TextStyle(
-                        color: potioCopper,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 1.3,
+    return ValueListenableBuilder<String>(
+      valueListenable: LanguageService.instance.languageCode,
+      builder: (context, languageCode, _) {
+        return PotioScaffold(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: ListView(
+              children: [
+                Container(
+                  padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
+                  decoration: BoxDecoration(
+                    color: potioPaper,
+                    borderRadius: BorderRadius.circular(28),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.18),
+                        blurRadius: 18,
+                        offset: const Offset(0, 10),
                       ),
-                    ),
+                    ],
                   ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 14),
-            Container(
-              padding: const EdgeInsets.all(18),
-              decoration: BoxDecoration(
-                color: potioPaper,
-                borderRadius: BorderRadius.circular(30),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.18),
-                    blurRadius: 20,
-                    offset: const Offset(0, 10),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  _ProfileAvatarPreview(
-                    avatarId: _progress.selectedAvatarId,
-                    frameId: _progress.selectedFrameId,
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          _progress.playerName,
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.person,
+                        color: potioEmerald,
+                        size: 28,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          AppText.get(languageCode, 'bartender_profile')
+                              .toUpperCase(),
                           style: const TextStyle(
-                            color: potioInk,
-                            fontSize: 26,
+                            color: potioCopper,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 1.3,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 14),
+                Container(
+                  padding: const EdgeInsets.all(18),
+                  decoration: BoxDecoration(
+                    color: potioPaper,
+                    borderRadius: BorderRadius.circular(30),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.18),
+                        blurRadius: 20,
+                        offset: const Offset(0, 10),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      _ProfileAvatarPreview(
+                        avatarId: _progress.selectedAvatarId,
+                        frameId: _progress.selectedFrameId,
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _progress.playerName,
+                              style: const TextStyle(
+                                color: potioInk,
+                                fontSize: 26,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              premiumActive
+                                  ? AppText.get(
+                                      languageCode,
+                                      'premium_bartender',
+                                    )
+                                  : AppText.get(
+                                      languageCode,
+                                      'beginner_bartender',
+                                    ),
+                              style: const TextStyle(
+                                color: potioMutedInk,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            GestureDetector(
+                              onTap: () {
+                                PotioAudioService.instance.playTap();
+                                _editName(languageCode);
+                              },
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(
+                                    Icons.edit,
+                                    color: potioEmerald,
+                                    size: 16,
+                                  ),
+                                  const SizedBox(width: 5),
+                                  Text(
+                                    AppText.get(languageCode, 'edit_name'),
+                                    style: const TextStyle(
+                                      color: potioEmerald,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w900,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: potioEmerald.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: Text(
+                          '${AppText.get(languageCode, 'lvl')} ${_progress.level}',
+                          style: const TextStyle(
+                            color: potioEmerald,
                             fontWeight: FontWeight.w900,
                           ),
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          premiumActive
-                              ? 'Premium Bartender'
-                              : 'Beginner Bartender',
-                          style: const TextStyle(
-                            color: potioMutedInk,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        GestureDetector(
-                          onTap: () {
-                            PotioAudioService.instance.playTap();
-                            _editName();
-                          },
-                          child: const Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.edit,
-                                color: potioEmerald,
-                                size: 16,
-                              ),
-                              SizedBox(width: 5),
-                              Text(
-                                'Edit name',
-                                style: TextStyle(
-                                  color: potioEmerald,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w900,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
-                    ),
-                    decoration: BoxDecoration(
-                      color: potioEmerald.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                    child: Text(
-                      'LVL ${_progress.level}',
-                      style: const TextStyle(
-                        color: potioEmerald,
-                        fontWeight: FontWeight.w900,
+                ),
+                const SizedBox(height: 18),
+                Row(
+                  children: [
+                    Expanded(
+                      child: PotioStatPill(
+                        icon: Icons.route_outlined,
+                        value: '${_progress.completedBasicLevels}/20',
+                        label: AppText.get(languageCode, 'levels_done'),
                       ),
                     ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: PotioStatPill(
+                        icon: Icons.emoji_events_outlined,
+                        value: '$unlockedAchievements/${allAchievements.length}',
+                        label: AppText.get(languageCode, 'achievements'),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Expanded(
+                      child: PotioStatPill(
+                        icon: Icons.favorite_border,
+                        value: '${_progress.favouriteDrinkIds.length}',
+                        label: AppText.get(languageCode, 'favourites'),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: PotioStatPill(
+                        icon: Icons.bolt_outlined,
+                        value: '${_progress.totalXp}',
+                        label: AppText.get(languageCode, 'xp'),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 18),
+                PotioCard(
+                  badge: AppText.get(languageCode, 'progress'),
+                  icon: Icons.emoji_events_outlined,
+                  title: AppText.get(languageCode, 'achievements'),
+                  subtitle: AppText.get(
+                    languageCode,
+                    'achievement_card_subtitle',
                   ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 18),
-            Row(
-              children: [
-                Expanded(
-                  child: PotioStatPill(
-                    icon: Icons.route_outlined,
-                    value: '${_progress.completedBasicLevels}/20',
-                    label: 'Levels done',
+                  onTap: () => _openScreen(
+                    context,
+                    const AchievementsScreen(),
                   ),
                 ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: PotioStatPill(
-                    icon: Icons.emoji_events_outlined,
-                    value: '$unlockedAchievements/${allAchievements.length}',
-                    label: 'Achievements',
+                const SizedBox(height: 12),
+                PotioCard(
+                  badge: AppText.get(languageCode, 'profile'),
+                  icon: Icons.face_outlined,
+                  title: AppText.get(languageCode, 'avatar_selection'),
+                  subtitle: AppText.get(
+                    languageCode,
+                    'avatar_selection_subtitle',
                   ),
+                  onTap: () => _openScreen(
+                    context,
+                    const AvatarSelectionScreen(),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                PotioCard(
+                  badge: AppText.get(languageCode, 'ranking'),
+                  icon: Icons.leaderboard_outlined,
+                  title: AppText.get(languageCode, 'leaderboard'),
+                  subtitle: AppText.get(
+                    languageCode,
+                    'leaderboard_card_subtitle',
+                  ),
+                  onTap: () => _openScreen(
+                    context,
+                    const LeaderboardScreen(),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                PotioCard(
+                  badge: AppText.get(languageCode, 'app'),
+                  icon: Icons.settings_outlined,
+                  title: AppText.get(languageCode, 'settings'),
+                  subtitle: AppText.get(languageCode, 'settings_subtitle'),
+                  onTap: () => _openSettings(languageCode),
+                ),
+                const SizedBox(height: 12),
+                PotioCard(
+                  badge: AppText.get(languageCode, 'about'),
+                  icon: Icons.info_outline,
+                  title: AppText.get(languageCode, 'credits'),
+                  subtitle: AppText.get(languageCode, 'credits_subtitle'),
+                  onTap: () => _openScreen(context, const CreditsScreen()),
                 ),
               ],
             ),
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                Expanded(
-                  child: PotioStatPill(
-                    icon: Icons.favorite_border,
-                    value: '${_progress.favouriteDrinkIds.length}',
-                    label: 'Favourites',
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: PotioStatPill(
-                    icon: Icons.bolt_outlined,
-                    value: '${_progress.totalXp}',
-                    label: 'XP',
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 18),
-            PotioCard(
-              badge: 'Progress',
-              icon: Icons.emoji_events_outlined,
-              title: 'Achievements',
-              subtitle:
-                  'View achievement progress, rewards, avatars, and frames.',
-              onTap: () => _openScreen(context, const AchievementsScreen()),
-            ),
-            const SizedBox(height: 12),
-            PotioCard(
-              badge: 'Profile',
-              icon: Icons.face_outlined,
-              title: 'Avatar Selection',
-              subtitle:
-                  'Choose your bartender avatar and future profile frames.',
-              onTap: () => _openScreen(context, const AvatarSelectionScreen()),
-            ),
-            const SizedBox(height: 12),
-            PotioCard(
-              badge: 'Ranking',
-              icon: Icons.leaderboard_outlined,
-              title: 'Leaderboard',
-              subtitle: 'Compare progress by XP, levels, and achievements.',
-              onTap: () => _openScreen(context, const LeaderboardScreen()),
-            ),
-            const SizedBox(height: 12),
-            PotioCard(
-              badge: 'App',
-              icon: Icons.settings_outlined,
-              title: 'Settings',
-              subtitle:
-                  'Units, premium status, language, sound, music, and app preferences.',
-              onTap: _openSettings,
-            ),
-            const SizedBox(height: 12),
-            PotioCard(
-              badge: 'About',
-              icon: Icons.info_outline,
-              title: 'Credits',
-              subtitle: 'View Potio asset, recipe, and app credits.',
-              onTap: () => _openScreen(context, const CreditsScreen()),
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }
@@ -821,10 +871,12 @@ class _ProfileFrameStyle {
 }
 
 class _UnitDropdownRow extends StatelessWidget {
+  final String languageCode;
   final String value;
   final ValueChanged<String?> onChanged;
 
   const _UnitDropdownRow({
+    required this.languageCode,
     required this.value,
     required this.onChanged,
   });
@@ -850,10 +902,10 @@ class _UnitDropdownRow extends StatelessWidget {
             color: potioEmerald,
           ),
           const SizedBox(width: 12),
-          const Expanded(
+          Expanded(
             child: Text(
-              'Recipe Units',
-              style: TextStyle(
+              AppText.get(languageCode, 'recipe_units'),
+              style: const TextStyle(
                 color: potioInk,
                 fontWeight: FontWeight.w900,
               ),
@@ -889,10 +941,12 @@ class _UnitDropdownRow extends StatelessWidget {
 }
 
 class _LanguageDropdownRow extends StatelessWidget {
+  final String languageCode;
   final String value;
   final ValueChanged<String?> onChanged;
 
   const _LanguageDropdownRow({
+    required this.languageCode,
     required this.value,
     required this.onChanged,
   });
@@ -922,10 +976,10 @@ class _LanguageDropdownRow extends StatelessWidget {
             color: potioEmerald,
           ),
           const SizedBox(width: 12),
-          const Expanded(
+          Expanded(
             child: Text(
-              'Language',
-              style: TextStyle(
+              AppText.get(languageCode, 'language'),
+              style: const TextStyle(
                 color: potioInk,
                 fontWeight: FontWeight.w900,
               ),
@@ -941,18 +995,18 @@ class _LanguageDropdownRow extends StatelessWidget {
                 color: potioInk,
                 fontWeight: FontWeight.w900,
               ),
-              items: const [
+              items: [
                 DropdownMenuItem(
                   value: 'en',
-                  child: Text('English'),
+                  child: Text(AppText.get(languageCode, 'english')),
                 ),
                 DropdownMenuItem(
                   value: 'uk',
-                  child: Text('Українська'),
+                  child: Text(AppText.get(languageCode, 'ukrainian')),
                 ),
                 DropdownMenuItem(
                   value: 'ru',
-                  child: Text('Русский'),
+                  child: Text(AppText.get(languageCode, 'russian')),
                 ),
               ],
               onChanged: onChanged,

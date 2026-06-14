@@ -143,9 +143,12 @@ class _HomeScreenState extends State<HomeScreen> {
                       onTap: () => _tapAndOpenLanguage(context),
                     ),
                     const SizedBox(width: 10),
-                    const SoundToggleButton(),
+                    SoundToggleButton(
+                      label: AppText.get(languageCode, 'sound'),
+                    ),
                     const Spacer(),
                     _PremiumCornerButton(
+                      label: AppText.get(languageCode, 'premium'),
                       onTap: () => _tapAndOpenPremium(context),
                     ),
                   ],
@@ -287,9 +290,11 @@ class _TopRoundButton extends StatelessWidget {
 }
 
 class _PremiumCornerButton extends StatelessWidget {
+  final String label;
   final VoidCallback onTap;
 
   const _PremiumCornerButton({
+    required this.label,
     required this.onTap,
   });
 
@@ -301,16 +306,20 @@ class _PremiumCornerButton extends StatelessWidget {
       child: InkWell(
         borderRadius: BorderRadius.circular(999),
         onTap: onTap,
-        child: const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 13, vertical: 9),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 9),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.workspace_premium, color: potioPaper, size: 18),
-              SizedBox(width: 6),
+              const Icon(
+                Icons.workspace_premium,
+                color: potioPaper,
+                size: 18,
+              ),
+              const SizedBox(width: 6),
               Text(
-                'Premium',
-                style: TextStyle(
+                label,
+                style: const TextStyle(
                   color: potioPaper,
                   fontWeight: FontWeight.w900,
                   fontSize: 12,

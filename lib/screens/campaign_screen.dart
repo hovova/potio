@@ -1,5 +1,8 @@
 ﻿import 'package:flutter/material.dart';
 
+import '../data/app_text.dart';
+import '../services/audio_service.dart';
+import '../services/language_service.dart';
 import '../widgets/potio_card.dart';
 import 'premium_screen.dart';
 import 'quiz_screen.dart';
@@ -7,7 +10,11 @@ import 'quiz_screen.dart';
 class PotioCampaignScreen extends StatelessWidget {
   const PotioCampaignScreen({super.key});
 
-  void _openScreen(BuildContext context, Widget screen) {
+  Future<void> _openScreen(BuildContext context, Widget screen) async {
+    await PotioAudioService.instance.playTap();
+
+    if (!context.mounted) return;
+
     Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => screen),
@@ -16,47 +23,58 @@ class PotioCampaignScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return PotioScaffold(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: ListView(
-          children: [
-            const PotioPageHeader(
-              eyebrow: 'Academy paths',
-              title: 'Campaign',
-              subtitle:
-                  'Potio uses bartender academy paths instead of Stella’s sky map.',
-              icon: Icons.route,
+    return ValueListenableBuilder<String>(
+      valueListenable: LanguageService.instance.languageCode,
+      builder: (context, languageCode, _) {
+        return PotioScaffold(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: ListView(
+              children: [
+                PotioPageHeader(
+                  eyebrow: AppText.get(languageCode, 'academy_paths'),
+                  title: AppText.get(languageCode, 'campaign'),
+                  subtitle: AppText.get(languageCode, 'campaign_subtitle'),
+                  icon: Icons.route,
+                ),
+                const SizedBox(height: 18),
+                PotioCard(
+                  badge: AppText.get(languageCode, 'free_label'),
+                  icon: Icons.local_bar_outlined,
+                  title: AppText.get(languageCode, 'basic_bar_academy'),
+                  subtitle: AppText.get(languageCode, 'basic_bar_subtitle'),
+                  onTap: () => _openScreen(context, const QuizScreen()),
+                ),
+                const SizedBox(height: 12),
+                PotioCard(
+                  badge: AppText.get(languageCode, 'premium_label'),
+                  icon: Icons.workspace_premium_outlined,
+                  title: AppText.get(
+                    languageCode,
+                    'master_mixologist_academy',
+                  ),
+                  subtitle: AppText.get(
+                    languageCode,
+                    'master_mixologist_academy_subtitle',
+                  ),
+                  onTap: () => _openScreen(context, const PremiumScreen()),
+                ),
+                const SizedBox(height: 12),
+                PotioCard(
+                  badge: AppText.get(languageCode, 'exam_style'),
+                  icon: Icons.school_outlined,
+                  title: AppText.get(languageCode, 'bartender_trials'),
+                  subtitle: AppText.get(
+                    languageCode,
+                    'bartender_trials_subtitle',
+                  ),
+                  onTap: () => _openScreen(context, const QuizScreen()),
+                ),
+              ],
             ),
-            const SizedBox(height: 18),
-            PotioCard(
-              badge: 'Free',
-              icon: Icons.local_bar_outlined,
-              title: 'Basic Bar Academy',
-              subtitle: '20 levels • 50 popular drinks • all quiz modes available.',
-              onTap: () => _openScreen(context, const QuizScreen()),
-            ),
-            const SizedBox(height: 12),
-            PotioCard(
-              badge: 'Premium',
-              icon: Icons.workspace_premium_outlined,
-              title: 'Master Mixologist Academy',
-              subtitle:
-                  '100+ total drinks • advanced recipes • bartender guide • offline • no ads.',
-              onTap: () => _openScreen(context, const PremiumScreen()),
-            ),
-            const SizedBox(height: 12),
-            PotioCard(
-              badge: 'Exam style',
-              icon: Icons.school_outlined,
-              title: 'Bartender Trials',
-              subtitle:
-                  'Future challenge levels covering glassware, methods, allergens, and service knowledge.',
-              onTap: () => _openScreen(context, const QuizScreen()),
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }

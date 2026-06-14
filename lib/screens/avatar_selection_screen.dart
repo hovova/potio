@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../data/achievements.dart';
+import '../data/app_text.dart';
 import '../models/player_progress.dart';
 import '../services/audio_service.dart';
+import '../services/language_service.dart';
 import '../services/progress_storage_service.dart';
 import '../widgets/potio_card.dart';
 import 'premium_screen.dart';
@@ -24,133 +26,133 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
   final List<_AvatarItem> avatars = const [
     _AvatarItem(
       id: 'classic_bartender',
-      name: 'Classic Bartender',
-      subtitle: 'Default starter avatar',
+      titleKey: 'classic_bartender',
+      subtitleKey: 'default_starter_avatar',
       icon: Icons.local_bar,
       unlockType: _UnlockType.free,
     ),
     _AvatarItem(
       id: 'welcome_bartender',
-      name: 'Welcome Bartender',
-      subtitle: 'Unlocked when you first open Potio',
+      titleKey: 'welcome_bartender',
+      subtitleKey: 'unlocked_first_open',
       icon: Icons.waving_hand,
       unlockType: _UnlockType.achievement,
       achievementId: AchievementIds.firstLogin,
-      unlockRequirement: 'Achievement: Welcome to Potio',
+      unlockRequirementKey: 'achievement_first_login_title',
     ),
     _AvatarItem(
       id: 'recipe_rookie',
-      name: 'Recipe Rookie',
-      subtitle: 'Unlocked by completing 5 recipe questions',
+      titleKey: 'recipe_rookie',
+      subtitleKey: 'unlocked_5_recipe_questions',
       icon: Icons.receipt_long,
       unlockType: _UnlockType.achievement,
       achievementId: AchievementIds.recipeRookie,
-      unlockRequirement: 'Achievement: Recipe Rookie',
+      unlockRequirementKey: 'achievement_recipe_rookie_title',
     ),
     _AvatarItem(
       id: 'daily_regular',
-      name: 'Daily Regular',
-      subtitle: 'Unlocked by completing 3 Daily Mixology challenges',
+      titleKey: 'daily_regular',
+      subtitleKey: 'unlocked_3_daily',
       icon: Icons.calendar_month,
       unlockType: _UnlockType.achievement,
       achievementId: AchievementIds.dailyRegular,
-      unlockRequirement: 'Achievement: Daily Regular',
+      unlockRequirementKey: 'achievement_daily_regular_title',
     ),
     _AvatarItem(
       id: 'academy_student',
-      name: 'Academy Student',
-      subtitle: 'Unlocked by completing 5 Basic Academy levels',
+      titleKey: 'academy_student',
+      subtitleKey: 'unlocked_5_academy_levels',
       icon: Icons.school,
       unlockType: _UnlockType.achievement,
       achievementId: AchievementIds.academyStarter,
-      unlockRequirement: 'Achievement: Academy Starter',
+      unlockRequirementKey: 'achievement_academy_starter_title',
     ),
     _AvatarItem(
       id: 'gold_pour_avatar',
-      name: 'Gold Pour',
-      subtitle: 'Unlocked by scoring 100% in any level',
+      titleKey: 'gold_pour_avatar',
+      subtitleKey: 'unlocked_100_any_level',
       icon: Icons.emoji_events,
       unlockType: _UnlockType.achievement,
       achievementId: AchievementIds.goldPour,
-      unlockRequirement: 'Achievement: Gold Pour',
+      unlockRequirementKey: 'achievement_gold_pour_title',
     ),
     _AvatarItem(
       id: 'master_mixologist',
-      name: 'Master Mixologist',
-      subtitle: 'Premium avatar',
+      titleKey: 'master_mixologist',
+      subtitleKey: 'premium_avatar',
       icon: Icons.auto_awesome,
       unlockType: _UnlockType.premium,
-      unlockRequirement: 'Requires Potio Premium',
+      unlockRequirementKey: 'requires_potio_premium',
     ),
     _AvatarItem(
       id: 'golden_shaker',
-      name: 'Golden Shaker',
-      subtitle: 'Premium avatar',
+      titleKey: 'golden_shaker',
+      subtitleKey: 'premium_avatar',
       icon: Icons.star,
       unlockType: _UnlockType.premium,
-      unlockRequirement: 'Requires Potio Premium',
+      unlockRequirementKey: 'requires_potio_premium',
     ),
   ];
 
   final List<_AvatarItem> frames = const [
     _AvatarItem(
       id: 'none',
-      name: 'No Frame',
-      subtitle: 'Clean default profile style',
+      titleKey: 'no_frame',
+      subtitleKey: 'clean_default_profile_style',
       icon: Icons.crop_square,
       unlockType: _UnlockType.free,
     ),
     _AvatarItem(
       id: 'copper_frame',
-      name: 'Copper Frame',
-      subtitle: 'Unlocked by completing your first quiz',
+      titleKey: 'copper_frame',
+      subtitleKey: 'unlocked_first_quiz',
       icon: Icons.hexagon_outlined,
       unlockType: _UnlockType.achievement,
       achievementId: AchievementIds.firstQuiz,
-      unlockRequirement: 'Achievement: First Sip',
+      unlockRequirementKey: 'achievement_first_sip_title',
     ),
     _AvatarItem(
       id: 'mint_frame',
-      name: 'Mint Frame',
-      subtitle: 'Unlocked by saving 5 favourite drinks',
+      titleKey: 'mint_frame',
+      subtitleKey: 'unlocked_5_favourites',
       icon: Icons.eco,
       unlockType: _UnlockType.achievement,
       achievementId: AchievementIds.collector,
-      unlockRequirement: 'Achievement: Collector',
+      unlockRequirementKey: 'achievement_collector_title',
     ),
     _AvatarItem(
       id: 'gold_award_frame',
-      name: 'Gold Award Frame',
-      subtitle: 'Unlocked by scoring 100% in any level',
+      titleKey: 'gold_award_frame',
+      subtitleKey: 'unlocked_100_any_level',
       icon: Icons.emoji_events,
       unlockType: _UnlockType.achievement,
       achievementId: AchievementIds.goldPour,
-      unlockRequirement: 'Achievement: Gold Pour',
+      unlockRequirementKey: 'achievement_gold_pour_title',
     ),
     _AvatarItem(
       id: 'diamond_bar_frame',
-      name: 'Diamond Bar Frame',
-      subtitle: 'Unlocked by earning gold on all Basic Academy levels',
+      titleKey: 'diamond_bar_frame',
+      subtitleKey: 'unlocked_all_gold',
       icon: Icons.diamond_outlined,
       unlockType: _UnlockType.achievement,
       achievementId: AchievementIds.diamondBar,
-      unlockRequirement: 'Achievement: Diamond Bar',
+      unlockRequirementKey: 'achievement_diamond_bar_title',
     ),
     _AvatarItem(
       id: 'premium_emerald_frame',
-      name: 'Emerald Premium Frame',
-      subtitle: 'Premium frame',
+      titleKey: 'emerald_premium_frame',
+      subtitleKey: 'premium_frame',
       icon: Icons.workspace_premium,
       unlockType: _UnlockType.premium,
-      unlockRequirement: 'Requires Potio Premium',
+      unlockRequirementKey: 'requires_potio_premium',
     ),
     _AvatarItem(
       id: 'premium_platinum_frame',
-      name: 'Platinum Premium Frame',
-      subtitle: 'Premium frame',
+      titleKey: 'platinum_premium_frame',
+      subtitleKey: 'premium_frame',
       icon: Icons.diamond_outlined,
       unlockType: _UnlockType.premium,
-      unlockRequirement: 'Requires Potio Premium',
+      unlockRequirementKey: 'requires_potio_premium',
     ),
   ];
 
@@ -216,13 +218,13 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
     return false;
   }
 
-  Future<void> _selectItem(_AvatarItem item) async {
+  Future<void> _selectItem(_AvatarItem item, String languageCode) async {
     PotioAudioService.instance.playTap();
 
     final unlocked = _isUnlocked(item);
 
     if (!unlocked) {
-      _showLockedSheet(item);
+      _showLockedSheet(item, languageCode);
       return;
     }
 
@@ -245,12 +247,18 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
     ).then((_) => _loadProgress());
   }
 
-  void _showLockedSheet(_AvatarItem item) {
+  void _showLockedSheet(_AvatarItem item, String languageCode) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       builder: (sheetContext) {
         final isPremium = item.unlockType == _UnlockType.premium;
+        final title = AppText.get(languageCode, item.titleKey);
+        final requirement = item.unlockRequirementKey == null
+            ? AppText.get(languageCode, 'coming_soon')
+            : isPremium
+                ? AppText.get(languageCode, item.unlockRequirementKey!)
+                : '${AppText.get(languageCode, 'achievements')}: ${AppText.get(languageCode, item.unlockRequirementKey!)}';
 
         return Container(
           padding: const EdgeInsets.fromLTRB(20, 18, 20, 28),
@@ -281,7 +289,7 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
                 ),
                 const SizedBox(height: 10),
                 Text(
-                  item.name,
+                  title,
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     color: potioInk,
@@ -291,7 +299,7 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  item.unlockRequirement ?? 'Locked',
+                  requirement,
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     color: potioMutedInk,
@@ -330,7 +338,9 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
                       isPremium ? Icons.workspace_premium : Icons.play_arrow,
                     ),
                     label: Text(
-                      isPremium ? 'Go to Premium' : 'Continue Playing',
+                      isPremium
+                          ? AppText.get(languageCode, 'go_to_premium')
+                          : AppText.get(languageCode, 'continue_playing'),
                       style: const TextStyle(fontWeight: FontWeight.w900),
                     ),
                   ),
@@ -381,141 +391,157 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
       );
     }
 
-    final items = currentItems;
-    final previewAvatar = _fallbackSelectedAvatar();
-    final previewFrame = _fallbackSelectedFrame();
+    return ValueListenableBuilder<String>(
+      valueListenable: LanguageService.instance.languageCode,
+      builder: (context, languageCode, _) {
+        final items = currentItems;
+        final previewAvatar = _fallbackSelectedAvatar();
+        final previewFrame = _fallbackSelectedFrame();
+        final previewFrameName = AppText.get(languageCode, previewFrame.titleKey);
 
-    return ValueListenableBuilder<bool>(
-      valueListenable: potioPremiumActiveNotifier,
-      builder: (context, premiumActive, child) {
-        return PotioScaffold(
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: ListView(
-              children: [
-                Container(
-                  padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
-                  decoration: BoxDecoration(
-                    color: potioPaper,
-                    borderRadius: BorderRadius.circular(26),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.16),
-                        blurRadius: 16,
-                        offset: const Offset(0, 8),
+        return ValueListenableBuilder<bool>(
+          valueListenable: potioPremiumActiveNotifier,
+          builder: (context, premiumActive, child) {
+            return PotioScaffold(
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: ListView(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+                      decoration: BoxDecoration(
+                        color: potioPaper,
+                        borderRadius: BorderRadius.circular(26),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.16),
+                            blurRadius: 16,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                  child: const Row(
-                    children: [
-                      Icon(
-                        Icons.face,
-                        color: potioEmerald,
-                        size: 28,
-                      ),
-                      SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'PROFILE STYLE',
-                              style: TextStyle(
-                                color: potioCopper,
-                                fontSize: 11,
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: 1.3,
-                              ),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.face,
+                            color: potioEmerald,
+                            size: 28,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  AppText.get(languageCode, 'profile_style')
+                                      .toUpperCase(),
+                                  style: const TextStyle(
+                                    color: potioCopper,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: 1.3,
+                                  ),
+                                ),
+                                const SizedBox(height: 3),
+                                Text(
+                                  AppText.get(
+                                    languageCode,
+                                    'avatars_and_frames',
+                                  ),
+                                  style: const TextStyle(
+                                    color: potioInk,
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w900,
+                                  ),
+                                ),
+                              ],
                             ),
-                            SizedBox(height: 3),
-                            Text(
-                              'Avatars and frames',
-                              style: TextStyle(
-                                color: potioInk,
-                                fontSize: 20,
-                                fontWeight: FontWeight.w900,
-                              ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: potioPaper,
+                        borderRadius: BorderRadius.circular(30),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.18),
+                            blurRadius: 20,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          _ProfilePreview(
+                            avatar: previewAvatar,
+                            frame: previewFrame,
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  _progress.playerName,
+                                  style: const TextStyle(
+                                    color: potioInk,
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.w900,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  previewFrame.id == 'none'
+                                      ? AppText.get(
+                                          languageCode,
+                                          'no_frame_selected',
+                                        )
+                                      : '$previewFrameName ${AppText.get(languageCode, 'selected').toLowerCase()}.',
+                                  style: const TextStyle(
+                                    color: potioMutedInk,
+                                    fontWeight: FontWeight.w700,
+                                    height: 1.3,
+                                  ),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 14),
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: potioPaper,
-                    borderRadius: BorderRadius.circular(30),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.18),
-                        blurRadius: 20,
-                        offset: const Offset(0, 10),
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    children: [
-                      _ProfilePreview(
-                        avatar: previewAvatar,
-                        frame: previewFrame,
-                      ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              _progress.playerName,
-                              style: const TextStyle(
-                                color: potioInk,
-                                fontSize: 24,
-                                fontWeight: FontWeight.w900,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              previewFrame.id == 'none'
-                                  ? 'No frame selected.'
-                                  : '${previewFrame.name} selected.',
-                              style: const TextStyle(
-                                color: potioMutedInk,
-                                fontWeight: FontWeight.w700,
-                                height: 1.3,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 18),
-                _AvatarTabs(
-                  selectedTab: selectedTab,
-                  onChanged: (index) {
-                    PotioAudioService.instance.playTap();
+                    ),
+                    const SizedBox(height: 18),
+                    _AvatarTabs(
+                      selectedTab: selectedTab,
+                      avatarsLabel: AppText.get(languageCode, 'avatars'),
+                      framesLabel: AppText.get(languageCode, 'frames'),
+                      onChanged: (index) {
+                        PotioAudioService.instance.playTap();
 
-                    setState(() {
-                      selectedTab = index;
-                    });
-                  },
+                        setState(() {
+                          selectedTab = index;
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    for (final item in items) ...[
+                      _AvatarOptionCard(
+                        item: item,
+                        languageCode: languageCode,
+                        selected: item.id == selectedId,
+                        unlocked: _isUnlocked(item),
+                        onTap: () => _selectItem(item, languageCode),
+                      ),
+                      const SizedBox(height: 12),
+                    ],
+                  ],
                 ),
-                const SizedBox(height: 16),
-                for (final item in items) ...[
-                  _AvatarOptionCard(
-                    item: item,
-                    selected: item.id == selectedId,
-                    unlocked: _isUnlocked(item),
-                    onTap: () => _selectItem(item),
-                  ),
-                  const SizedBox(height: 12),
-                ],
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         );
       },
     );
@@ -530,21 +556,21 @@ enum _UnlockType {
 
 class _AvatarItem {
   final String id;
-  final String name;
-  final String subtitle;
+  final String titleKey;
+  final String subtitleKey;
   final IconData icon;
   final _UnlockType unlockType;
   final String? achievementId;
-  final String? unlockRequirement;
+  final String? unlockRequirementKey;
 
   const _AvatarItem({
     required this.id,
-    required this.name,
-    required this.subtitle,
+    required this.titleKey,
+    required this.subtitleKey,
     required this.icon,
     required this.unlockType,
     this.achievementId,
-    this.unlockRequirement,
+    this.unlockRequirementKey,
   });
 }
 
@@ -597,10 +623,14 @@ class _ProfilePreview extends StatelessWidget {
 
 class _AvatarTabs extends StatelessWidget {
   final int selectedTab;
+  final String avatarsLabel;
+  final String framesLabel;
   final ValueChanged<int> onChanged;
 
   const _AvatarTabs({
     required this.selectedTab,
+    required this.avatarsLabel,
+    required this.framesLabel,
     required this.onChanged,
   });
 
@@ -618,13 +648,13 @@ class _AvatarTabs extends StatelessWidget {
       child: Row(
         children: [
           _TabButton(
-            label: 'Avatars',
+            label: avatarsLabel,
             icon: Icons.face,
             selected: selectedTab == 0,
             onTap: () => onChanged(0),
           ),
           _TabButton(
-            label: 'Frames',
+            label: framesLabel,
             icon: Icons.filter_frames,
             selected: selectedTab == 1,
             onTap: () => onChanged(1),
@@ -686,12 +716,14 @@ class _TabButton extends StatelessWidget {
 
 class _AvatarOptionCard extends StatelessWidget {
   final _AvatarItem item;
+  final String languageCode;
   final bool selected;
   final bool unlocked;
   final VoidCallback onTap;
 
   const _AvatarOptionCard({
     required this.item,
+    required this.languageCode,
     required this.selected,
     required this.unlocked,
     required this.onTap,
@@ -705,6 +737,14 @@ class _AvatarOptionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isPremium = item.unlockType == _UnlockType.premium;
     final isAchievement = item.unlockType == _UnlockType.achievement;
+
+    final title = AppText.get(languageCode, item.titleKey);
+    final subtitle = AppText.get(languageCode, item.subtitleKey);
+    final requirement = item.unlockRequirementKey == null
+        ? null
+        : isPremium
+            ? AppText.get(languageCode, item.unlockRequirementKey!)
+            : '${AppText.get(languageCode, 'achievements')}: ${AppText.get(languageCode, item.unlockRequirementKey!)}';
 
     return Material(
       color: Colors.transparent,
@@ -769,7 +809,7 @@ class _AvatarOptionCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      item.name,
+                      title,
                       style: const TextStyle(
                         color: potioPaper,
                         fontSize: 17,
@@ -778,17 +818,17 @@ class _AvatarOptionCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      item.subtitle,
+                      subtitle,
                       style: const TextStyle(
                         color: potioPaperDeep,
                         height: 1.3,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    if (item.unlockRequirement != null) ...[
+                    if (requirement != null) ...[
                       const SizedBox(height: 7),
                       Text(
-                        item.unlockRequirement!,
+                        requirement,
                         style: TextStyle(
                           color: isPremium
                               ? potioCopperLight
@@ -968,7 +1008,7 @@ class _FrameStyle {
             ),
           ],
         );
-            case 'premium_platinum_frame':
+      case 'premium_platinum_frame':
         return _FrameStyle(
           gradient: LinearGradient(
             colors: [

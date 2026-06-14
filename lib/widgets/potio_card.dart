@@ -1,5 +1,7 @@
 ﻿import 'package:flutter/material.dart';
 import '../services/audio_service.dart';
+import '../data/app_text.dart';
+import '../services/language_service.dart';
 
 const potioEspresso = Color(0xFF1E120C);
 const potioDarkCoffee = Color(0xFF2B1A12);
@@ -68,27 +70,31 @@ class PotioScaffold extends StatelessWidget {
                 child: InkWell(
                   borderRadius: BorderRadius.circular(999),
                   onTap: () => Navigator.maybePop(context),
-                  child: const Padding(
-                    padding: EdgeInsets.symmetric(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
                       horizontal: 12,
                       vertical: 9,
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.arrow_back,
                           color: potioEmerald,
                           size: 18,
                         ),
-                        SizedBox(width: 6),
-                        Text(
-                          'Back',
-                          style: TextStyle(
-                            color: potioInk,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w900,
-                          ),
+                        const SizedBox(width: 6),
+                        ValueListenableBuilder<String>(
+                          valueListenable: LanguageService.instance.languageCode,
+                          builder: (context, languageCode, _) {
+                            return Text(
+                              AppText.get(languageCode, 'back'),
+                              style: const TextStyle(
+                                color: potioInk,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            );
+                          },
                         ),
                       ],
                     ),

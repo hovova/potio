@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../data/app_text.dart';
+import '../services/audio_service.dart';
+import '../services/language_service.dart';
 import '../widgets/potio_card.dart';
 
 class LeaderboardScreen extends StatefulWidget {
@@ -10,96 +13,96 @@ class LeaderboardScreen extends StatefulWidget {
 }
 
 class _LeaderboardScreenState extends State<LeaderboardScreen> {
-  String selectedFilter = 'XP';
+  String selectedFilter = 'xp';
 
-  final List<String> filters = const [
-    'XP',
-    'Levels',
-    'Gold',
+  final List<_LeaderboardFilter> filters = const [
+    _LeaderboardFilter(id: 'xp', labelKey: 'xp'),
+    _LeaderboardFilter(id: 'levels', labelKey: 'levels'),
+    _LeaderboardFilter(id: 'gold', labelKey: 'gold'),
   ];
 
   final List<_LeaderboardPlayer> players = const [
-  _LeaderboardPlayer(
-    name: 'Hernandez',
-    title: 'Beginner Bartender',
-    xp: 0,
-    level: 1,
-    completedLevels: 0,
-    goldAwards: 0,
-    isCurrentPlayer: true,
-  ),
-  _LeaderboardPlayer(
-    name: 'Bot Amelia',
-    title: 'Mojito Apprentice',
-    xp: 980,
-    level: 9,
-    completedLevels: 15,
-    goldAwards: 6,
-  ),
-  _LeaderboardPlayer(
-    name: 'Bot Marco',
-    title: 'Whiskey Specialist',
-    xp: 840,
-    level: 8,
-    completedLevels: 13,
-    goldAwards: 5,
-  ),
-  _LeaderboardPlayer(
-    name: 'Bot Sofia',
-    title: 'Citrus Expert',
-    xp: 720,
-    level: 7,
-    completedLevels: 11,
-    goldAwards: 4,
-  ),
-  _LeaderboardPlayer(
-    name: 'Bot Leo',
-    title: 'Recipe Rookie',
-    xp: 610,
-    level: 6,
-    completedLevels: 9,
-    goldAwards: 3,
-  ),
-  _LeaderboardPlayer(
-    name: 'Bot Maya',
-    title: 'Daily Mixology Regular',
-    xp: 470,
-    level: 5,
-    completedLevels: 7,
-    goldAwards: 2,
-  ),
-  _LeaderboardPlayer(
-    name: 'Bot Noah',
-    title: 'Bar Student',
-    xp: 320,
-    level: 4,
-    completedLevels: 5,
-    goldAwards: 1,
-  ),
-  _LeaderboardPlayer(
-    name: 'Bot Emma',
-    title: 'Glassware Learner',
-    xp: 190,
-    level: 3,
-    completedLevels: 3,
-    goldAwards: 0,
-  ),
-  _LeaderboardPlayer(
-    name: 'Bot Oliver',
-    title: 'New Bartender',
-    xp: 90,
-    level: 2,
-    completedLevels: 1,
-    goldAwards: 0,
-  ),
-];
+    _LeaderboardPlayer(
+      name: 'Hernandez',
+      titleKey: 'beginner_bartender',
+      xp: 0,
+      level: 1,
+      completedLevels: 0,
+      goldAwards: 0,
+      isCurrentPlayer: true,
+    ),
+    _LeaderboardPlayer(
+      name: 'Bot Amelia',
+      titleKey: 'mojito_apprentice',
+      xp: 980,
+      level: 9,
+      completedLevels: 15,
+      goldAwards: 6,
+    ),
+    _LeaderboardPlayer(
+      name: 'Bot Marco',
+      titleKey: 'whiskey_specialist',
+      xp: 840,
+      level: 8,
+      completedLevels: 13,
+      goldAwards: 5,
+    ),
+    _LeaderboardPlayer(
+      name: 'Bot Sofia',
+      titleKey: 'citrus_expert',
+      xp: 720,
+      level: 7,
+      completedLevels: 11,
+      goldAwards: 4,
+    ),
+    _LeaderboardPlayer(
+      name: 'Bot Leo',
+      titleKey: 'recipe_rookie',
+      xp: 610,
+      level: 6,
+      completedLevels: 9,
+      goldAwards: 3,
+    ),
+    _LeaderboardPlayer(
+      name: 'Bot Maya',
+      titleKey: 'daily_mixology_regular',
+      xp: 470,
+      level: 5,
+      completedLevels: 7,
+      goldAwards: 2,
+    ),
+    _LeaderboardPlayer(
+      name: 'Bot Noah',
+      titleKey: 'bar_student',
+      xp: 320,
+      level: 4,
+      completedLevels: 5,
+      goldAwards: 1,
+    ),
+    _LeaderboardPlayer(
+      name: 'Bot Emma',
+      titleKey: 'glassware_learner',
+      xp: 190,
+      level: 3,
+      completedLevels: 3,
+      goldAwards: 0,
+    ),
+    _LeaderboardPlayer(
+      name: 'Bot Oliver',
+      titleKey: 'new_bartender',
+      xp: 90,
+      level: 2,
+      completedLevels: 1,
+      goldAwards: 0,
+    ),
+  ];
 
   List<_LeaderboardPlayer> get sortedPlayers {
     final sorted = [...players];
 
-    if (selectedFilter == 'XP') {
+    if (selectedFilter == 'xp') {
       sorted.sort((a, b) => b.xp.compareTo(a.xp));
-    } else if (selectedFilter == 'Levels') {
+    } else if (selectedFilter == 'levels') {
       sorted.sort((a, b) => b.completedLevels.compareTo(a.completedLevels));
     } else {
       sorted.sort((a, b) => b.goldAwards.compareTo(a.goldAwards));
@@ -108,81 +111,100 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
     return sorted;
   }
 
+  void _selectFilter(String filterId) {
+    PotioAudioService.instance.playTap();
+
+    setState(() {
+      selectedFilter = filterId;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final rankedPlayers = sortedPlayers;
 
-    return PotioScaffold(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: ListView(
-          children: [
-            const PotioPageHeader(
-              eyebrow: 'Ranking',
-              title: 'Leaderboard',
-              subtitle:
-                  'Compare mixology XP, academy progress, and gold awards. Online ranking can be connected later.',
-              icon: Icons.leaderboard,
-            ),
-            const SizedBox(height: 18),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: filters.map((filter) {
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: PotioChip(
-                      label: filter,
-                      selected: selectedFilter == filter,
-                      onTap: () {
-                        setState(() {
-                          selectedFilter = filter;
-                        });
-                      },
-                    ),
-                  );
-                }).toList(),
-              ),
-            ),
-            const SizedBox(height: 18),
-            const Row(
+    return ValueListenableBuilder<String>(
+      valueListenable: LanguageService.instance.languageCode,
+      builder: (context, languageCode, _) {
+        return PotioScaffold(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: ListView(
               children: [
-                Expanded(
-                  child: PotioStatPill(
-                    icon: Icons.bolt_outlined,
-                    value: '0',
-                    label: 'Your XP',
+                PotioPageHeader(
+                  eyebrow: AppText.get(languageCode, 'ranking'),
+                  title: AppText.get(languageCode, 'leaderboard'),
+                  subtitle: AppText.get(languageCode, 'compare_progress'),
+                  icon: Icons.leaderboard,
+                ),
+                const SizedBox(height: 18),
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: filters.map((filter) {
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: PotioChip(
+                          label: AppText.get(languageCode, filter.labelKey),
+                          selected: selectedFilter == filter.id,
+                          onTap: () => _selectFilter(filter.id),
+                        ),
+                      );
+                    }).toList(),
                   ),
                 ),
-                SizedBox(width: 10),
-                Expanded(
-                  child: PotioStatPill(
-                    icon: Icons.workspace_premium_outlined,
-                    value: '0',
-                    label: 'Gold awards',
-                  ),
+                const SizedBox(height: 18),
+                Row(
+                  children: [
+                    Expanded(
+                      child: PotioStatPill(
+                        icon: Icons.bolt_outlined,
+                        value: '0',
+                        label: AppText.get(languageCode, 'your_xp'),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: PotioStatPill(
+                        icon: Icons.workspace_premium_outlined,
+                        value: '0',
+                        label: AppText.get(languageCode, 'gold_awards'),
+                      ),
+                    ),
+                  ],
                 ),
+                const SizedBox(height: 18),
+                for (int index = 0; index < rankedPlayers.length; index++) ...[
+                  _LeaderboardCard(
+                    rank: index + 1,
+                    player: rankedPlayers[index],
+                    selectedFilter: selectedFilter,
+                    languageCode: languageCode,
+                  ),
+                  const SizedBox(height: 10),
+                ],
               ],
             ),
-            const SizedBox(height: 18),
-            for (int index = 0; index < rankedPlayers.length; index++) ...[
-              _LeaderboardCard(
-                rank: index + 1,
-                player: rankedPlayers[index],
-                selectedFilter: selectedFilter,
-              ),
-              const SizedBox(height: 10),
-            ],
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }
 
+class _LeaderboardFilter {
+  final String id;
+  final String labelKey;
+
+  const _LeaderboardFilter({
+    required this.id,
+    required this.labelKey,
+  });
+}
+
 class _LeaderboardPlayer {
   final String name;
-  final String title;
+  final String titleKey;
   final int xp;
   final int level;
   final int completedLevels;
@@ -191,7 +213,7 @@ class _LeaderboardPlayer {
 
   const _LeaderboardPlayer({
     required this.name,
-    required this.title,
+    required this.titleKey,
     required this.xp,
     required this.level,
     required this.completedLevels,
@@ -204,11 +226,13 @@ class _LeaderboardCard extends StatelessWidget {
   final int rank;
   final _LeaderboardPlayer player;
   final String selectedFilter;
+  final String languageCode;
 
   const _LeaderboardCard({
     required this.rank,
     required this.player,
     required this.selectedFilter,
+    required this.languageCode,
   });
 
   @override
@@ -259,18 +283,20 @@ class _LeaderboardCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  player.isCurrentPlayer ? '${player.name}  •  You' : player.name,
-                  style: TextStyle(
-                    color: highlight ? potioPaper : potioPaper,
+                  player.isCurrentPlayer
+                      ? '${player.name}  •  ${AppText.get(languageCode, 'you')}'
+                      : player.name,
+                  style: const TextStyle(
+                    color: potioPaper,
                     fontSize: 16,
                     fontWeight: FontWeight.w900,
                   ),
                 ),
                 const SizedBox(height: 3),
                 Text(
-                  player.title,
-                  style: TextStyle(
-                    color: highlight ? potioPaperDeep : potioPaperDeep,
+                  AppText.get(languageCode, player.titleKey),
+                  style: const TextStyle(
+                    color: potioPaperDeep,
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
                   ),
@@ -280,15 +306,23 @@ class _LeaderboardCard extends StatelessWidget {
                   spacing: 7,
                   runSpacing: 7,
                   children: [
-                    _MiniStat(label: 'XP', value: '${player.xp}', highlighted: highlight),
-                    _MiniStat(label: 'LVL', value: '${player.level}', highlighted: highlight),
                     _MiniStat(
-                      label: 'Levels',
+                      label: AppText.get(languageCode, 'xp'),
+                      value: '${player.xp}',
+                      highlighted: highlight,
+                    ),
+                    _MiniStat(
+                      label: AppText.get(languageCode, 'lvl'),
+                      value: '${player.level}',
+                      highlighted: highlight,
+                    ),
+                    _MiniStat(
+                      label: AppText.get(languageCode, 'levels'),
                       value: '${player.completedLevels}/20',
                       highlighted: highlight,
                     ),
                     _MiniStat(
-                      label: 'Gold',
+                      label: AppText.get(languageCode, 'gold'),
                       value: '${player.goldAwards}',
                       highlighted: highlight,
                     ),
@@ -312,11 +346,11 @@ class _LeaderboardCard extends StatelessWidget {
   }
 
   String _mainValueText(_LeaderboardPlayer player) {
-    if (selectedFilter == 'XP') {
-      return '${player.xp} XP';
+    if (selectedFilter == 'xp') {
+      return '${player.xp} ${AppText.get(languageCode, 'xp')}';
     }
 
-    if (selectedFilter == 'Levels') {
+    if (selectedFilter == 'levels') {
       return '${player.completedLevels}/20';
     }
 

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 
+import '../data/app_text.dart';
 import '../data/drink_data.dart';
 import '../models/drink.dart';
 import '../models/player_progress.dart';
 import '../services/audio_service.dart';
+import '../services/language_service.dart';
 import '../services/progress_storage_service.dart';
 import '../widgets/potio_card.dart';
 
@@ -86,8 +88,8 @@ class _EncyclopediaScreenState extends State<EncyclopediaScreen> {
       final matchesOrigin = selectedOrigin == 'All' ||
           drink.origin.toLowerCase() == selectedOrigin.toLowerCase();
 
-      final matchesFavourite = !showFavouritesOnly ||
-          _progress.favouriteDrinkIds.contains(drink.id);
+      final matchesFavourite =
+          !showFavouritesOnly || _progress.favouriteDrinkIds.contains(drink.id);
 
       return matchesAlcohol &&
           matchesDifficulty &&
@@ -138,82 +140,93 @@ class _EncyclopediaScreenState extends State<EncyclopediaScreen> {
       );
     }
 
-    return PotioScaffold(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: ListView(
-          children: [
-            const _SmallEncyclopediaHeader(),
-            const SizedBox(height: 16),
-            _FilterPanel(
-              selectedAlcoholType: selectedAlcoholType,
-              selectedDifficulty: selectedDifficulty,
-              selectedOrigin: selectedOrigin,
-              showFavouritesOnly: showFavouritesOnly,
-              favouritesCount: _progress.favouriteDrinkIds.length,
-              alcoholTypeOptions: alcoholTypeOptions,
-              difficultyOptions: difficultyOptions,
-              originOptions: originOptions,
-              resultCount: filteredDrinks.length,
-              onAlcoholChanged: (value) async {
-                if (value == null) return;
+    return ValueListenableBuilder<String>(
+      valueListenable: LanguageService.instance.languageCode,
+      builder: (context, languageCode, _) {
+        return PotioScaffold(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: ListView(
+              children: [
+                _SmallEncyclopediaHeader(languageCode: languageCode),
+                const SizedBox(height: 16),
+                _FilterPanel(
+                  languageCode: languageCode,
+                  selectedAlcoholType: selectedAlcoholType,
+                  selectedDifficulty: selectedDifficulty,
+                  selectedOrigin: selectedOrigin,
+                  showFavouritesOnly: showFavouritesOnly,
+                  favouritesCount: _progress.favouriteDrinkIds.length,
+                  alcoholTypeOptions: alcoholTypeOptions,
+                  difficultyOptions: difficultyOptions,
+                  originOptions: originOptions,
+                  resultCount: filteredDrinks.length,
+                  onAlcoholChanged: (value) async {
+                    if (value == null) return;
 
-                await PotioAudioService.instance.playTap();
+                    await PotioAudioService.instance.playTap();
 
-                setState(() {
-                  selectedAlcoholType = value;
-                });
-              },
-              onDifficultyChanged: (value) async {
-                if (value == null) return;
+                    setState(() {
+                      selectedAlcoholType = value;
+                    });
+                  },
+                  onDifficultyChanged: (value) async {
+                    if (value == null) return;
 
-                await PotioAudioService.instance.playTap();
+                    await PotioAudioService.instance.playTap();
 
-                setState(() {
-                  selectedDifficulty = value;
-                });
-              },
-              onOriginChanged: (value) async {
-                if (value == null) return;
+                    setState(() {
+                      selectedDifficulty = value;
+                    });
+                  },
+                  onOriginChanged: (value) async {
+                    if (value == null) return;
 
-                await PotioAudioService.instance.playTap();
+                    await PotioAudioService.instance.playTap();
 
-                setState(() {
-                  selectedOrigin = value;
-                });
-              },
-              onFavouritesChanged: (value) async {
-                await PotioAudioService.instance.playTap();
+                    setState(() {
+                      selectedOrigin = value;
+                    });
+                  },
+                  onFavouritesChanged: (value) async {
+                    await PotioAudioService.instance.playTap();
 
-                setState(() {
-                  showFavouritesOnly = value;
-                });
-              },
-              onReset: _resetFilters,
-            ),
-            const SizedBox(height: 20),
-            if (filteredDrinks.isEmpty)
-              const _EmptyState()
-            else
-              for (final drink in filteredDrinks) ...[
-                DrinkRecipeCard(
-                  drink: drink,
-                  expanded: expandedDrinkIds.contains(drink.id),
-                  favourite: _progress.favouriteDrinkIds.contains(drink.id),
-                  onToggleExpanded: () => _toggleExpanded(drink),
-                  onToggleFavourite: () => _toggleFavourite(drink),
+                    setState(() {
+                      showFavouritesOnly = value;
+                    });
+                  },
+                  onReset: _resetFilters,
                 ),
-                const SizedBox(height: 18),
+                const SizedBox(height: 20),
+                if (filteredDrinks.isEmpty)
+                  _EmptyState(languageCode: languageCode)
+                else
+                  for (final drink in filteredDrinks) ...[
+                    DrinkRecipeCard(
+                      drink: drink,
+                      languageCode: languageCode,
+                      expanded: expandedDrinkIds.contains(drink.id),
+                      favourite: _progress.favouriteDrinkIds.contains(drink.id),
+                      onToggleExpanded: () => _toggleExpanded(drink),
+                      onToggleFavourite: () => _toggleFavourite(drink),
+                    ),
+                    const SizedBox(height: 18),
+                  ],
               ],
-          ],
-        ),
-      ),
+            ),
+          ),
+        );
+      },
     );
   }
 }
 
 class _SmallEncyclopediaHeader extends StatelessWidget {
-  const _SmallEncyclopediaHeader();
+  final String languageCode;
+
+  const _SmallEncyclopediaHeader({
+    required this.languageCode,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -230,19 +243,19 @@ class _SmallEncyclopediaHeader extends StatelessWidget {
           ),
         ],
       ),
-      child: const Row(
+      child: Row(
         children: [
-          Icon(
+          const Icon(
             Icons.local_bar,
             color: potioEmerald,
             size: 34,
           ),
-          SizedBox(width: 12),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                const Text(
                   'POTIO',
                   style: TextStyle(
                     color: potioCopper,
@@ -251,19 +264,19 @@ class _SmallEncyclopediaHeader extends StatelessWidget {
                     letterSpacing: 1.4,
                   ),
                 ),
-                SizedBox(height: 2),
+                const SizedBox(height: 2),
                 Text(
-                  'Encyclopedia',
-                  style: TextStyle(
+                  AppText.get(languageCode, 'encyclopedia'),
+                  style: const TextStyle(
                     color: potioInk,
                     fontSize: 24,
                     fontWeight: FontWeight.w900,
                   ),
                 ),
-                SizedBox(height: 3),
+                const SizedBox(height: 3),
                 Text(
-                  'Recipe cards, filters, favourites, and drink details.',
-                  style: TextStyle(
+                  AppText.get(languageCode, 'encyclopedia_subtitle'),
+                  style: const TextStyle(
                     color: potioMutedInk,
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
@@ -280,6 +293,7 @@ class _SmallEncyclopediaHeader extends StatelessWidget {
 }
 
 class _FilterPanel extends StatelessWidget {
+  final String languageCode;
   final String selectedAlcoholType;
   final String selectedDifficulty;
   final String selectedOrigin;
@@ -299,6 +313,7 @@ class _FilterPanel extends StatelessWidget {
   final VoidCallback onReset;
 
   const _FilterPanel({
+    required this.languageCode,
     required this.selectedAlcoholType,
     required this.selectedDifficulty,
     required this.selectedOrigin,
@@ -335,10 +350,10 @@ class _FilterPanel extends StatelessWidget {
                 color: potioCopperLight,
               ),
               const SizedBox(width: 8),
-              const Expanded(
+              Expanded(
                 child: Text(
-                  'Drink Filters',
-                  style: TextStyle(
+                  AppText.get(languageCode, 'drink_filters'),
+                  style: const TextStyle(
                     color: potioPaper,
                     fontSize: 17,
                     fontWeight: FontWeight.w900,
@@ -346,7 +361,7 @@ class _FilterPanel extends StatelessWidget {
                 ),
               ),
               Text(
-                '$resultCount results',
+                '$resultCount ${AppText.get(languageCode, 'results')}',
                 style: const TextStyle(
                   color: potioSage,
                   fontSize: 12,
@@ -357,30 +372,34 @@ class _FilterPanel extends StatelessWidget {
           ),
           const SizedBox(height: 14),
           _FilterDropdown(
+            languageCode: languageCode,
             icon: Icons.local_bar,
-            label: 'Alcohol Type',
+            label: AppText.get(languageCode, 'alcohol_type'),
             value: selectedAlcoholType,
             values: alcoholTypeOptions,
             onChanged: onAlcoholChanged,
           ),
           const SizedBox(height: 12),
           _FilterDropdown(
+            languageCode: languageCode,
             icon: Icons.school_outlined,
-            label: 'Difficulty',
+            label: AppText.get(languageCode, 'difficulty'),
             value: selectedDifficulty,
             values: difficultyOptions,
             onChanged: onDifficultyChanged,
           ),
           const SizedBox(height: 12),
           _FilterDropdown(
+            languageCode: languageCode,
             icon: Icons.public,
-            label: 'Country of Origin',
+            label: AppText.get(languageCode, 'country_origin'),
             value: selectedOrigin,
             values: originOptions,
             onChanged: onOriginChanged,
           ),
           const SizedBox(height: 12),
           _FavouritesFilterTile(
+            languageCode: languageCode,
             value: showFavouritesOnly,
             favouritesCount: favouritesCount,
             onChanged: onFavouritesChanged,
@@ -401,9 +420,9 @@ class _FilterPanel extends StatelessWidget {
               ),
               onPressed: onReset,
               icon: const Icon(Icons.refresh, size: 18),
-              label: const Text(
-                'Reset Filters',
-                style: TextStyle(fontWeight: FontWeight.w900),
+              label: Text(
+                AppText.get(languageCode, 'reset_filters'),
+                style: const TextStyle(fontWeight: FontWeight.w900),
               ),
             ),
           ),
@@ -414,6 +433,7 @@ class _FilterPanel extends StatelessWidget {
 }
 
 class _FilterDropdown extends StatelessWidget {
+  final String languageCode;
   final IconData icon;
   final String label;
   final String value;
@@ -421,12 +441,21 @@ class _FilterDropdown extends StatelessWidget {
   final ValueChanged<String?> onChanged;
 
   const _FilterDropdown({
+    required this.languageCode,
     required this.icon,
     required this.label,
     required this.value,
     required this.values,
     required this.onChanged,
   });
+
+  String _displayValue(String value) {
+    if (value.toLowerCase() == 'all') {
+      return AppText.get(languageCode, 'all');
+    }
+
+    return value;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -477,7 +506,7 @@ class _FilterDropdown extends StatelessWidget {
                     return Align(
                       alignment: Alignment.centerRight,
                       child: Text(
-                        item,
+                        _displayValue(item),
                         overflow: TextOverflow.ellipsis,
                         textAlign: TextAlign.right,
                       ),
@@ -488,7 +517,7 @@ class _FilterDropdown extends StatelessWidget {
                   for (final item in values)
                     DropdownMenuItem(
                       value: item,
-                      child: Text(item),
+                      child: Text(_displayValue(item)),
                     ),
                 ],
                 onChanged: onChanged,
@@ -502,11 +531,13 @@ class _FilterDropdown extends StatelessWidget {
 }
 
 class _FavouritesFilterTile extends StatelessWidget {
+  final String languageCode;
   final bool value;
   final int favouritesCount;
   final ValueChanged<bool> onChanged;
 
   const _FavouritesFilterTile({
+    required this.languageCode,
     required this.value,
     required this.favouritesCount,
     required this.onChanged,
@@ -538,17 +569,17 @@ class _FavouritesFilterTile extends StatelessWidget {
                 size: 20,
               ),
               const SizedBox(width: 10),
-              const Expanded(
+              Expanded(
                 child: Text(
-                  'Favourites Only',
-                  style: TextStyle(
+                  AppText.get(languageCode, 'favourites_only'),
+                  style: const TextStyle(
                     color: potioInk,
                     fontWeight: FontWeight.w900,
                   ),
                 ),
               ),
               Text(
-                '$favouritesCount saved',
+                '$favouritesCount ${AppText.get(languageCode, 'saved')}',
                 style: const TextStyle(
                   color: potioMutedInk,
                   fontSize: 12,
@@ -571,6 +602,7 @@ class _FavouritesFilterTile extends StatelessWidget {
 
 class DrinkRecipeCard extends StatelessWidget {
   final Drink drink;
+  final String languageCode;
   final bool expanded;
   final bool favourite;
   final VoidCallback onToggleExpanded;
@@ -579,6 +611,7 @@ class DrinkRecipeCard extends StatelessWidget {
   const DrinkRecipeCard({
     super.key,
     required this.drink,
+    required this.languageCode,
     required this.expanded,
     required this.favourite,
     required this.onToggleExpanded,
@@ -647,8 +680,14 @@ class DrinkRecipeCard extends StatelessWidget {
                         ),
                         color: const Color(0xFFFFCC7A),
                         tooltip: favourite
-                            ? 'Remove from favourites'
-                            : 'Add to favourites',
+                            ? AppText.get(
+                                languageCode,
+                                'remove_from_favourites',
+                              )
+                            : AppText.get(
+                                languageCode,
+                                'add_to_favourites',
+                              ),
                       ),
                       Icon(
                         expanded
@@ -662,7 +701,11 @@ class DrinkRecipeCard extends StatelessWidget {
                 ),
               ),
             ),
-            if (expanded) _ExpandedRecipeContent(drink: drink),
+            if (expanded)
+              _ExpandedRecipeContent(
+                drink: drink,
+                languageCode: languageCode,
+              ),
           ],
         ),
       ),
@@ -672,9 +715,11 @@ class DrinkRecipeCard extends StatelessWidget {
 
 class _ExpandedRecipeContent extends StatelessWidget {
   final Drink drink;
+  final String languageCode;
 
   const _ExpandedRecipeContent({
     required this.drink,
+    required this.languageCode,
   });
 
   @override
@@ -684,7 +729,10 @@ class _ExpandedRecipeContent extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _LargeDrinkImagePlaceholder(drink: drink),
+          _LargeDrinkImagePlaceholder(
+            drink: drink,
+            languageCode: languageCode,
+          ),
           const SizedBox(height: 16),
           Text(
             drink.shortDescription,
@@ -702,21 +750,28 @@ class _ExpandedRecipeContent extends StatelessWidget {
             children: [
               _Pill(drink.baseSpirit),
               _Pill(drink.difficulty),
-              _Pill(drink.isAlcoholic ? 'Alcoholic' : 'Mocktail'),
+              _Pill(
+                drink.isAlcoholic
+                    ? AppText.get(languageCode, 'alcoholic')
+                    : AppText.get(languageCode, 'mocktail'),
+              ),
               _Pill(drink.origin),
             ],
           ),
           const SizedBox(height: 18),
-          _Facts(drink: drink),
+          _Facts(
+            drink: drink,
+            languageCode: languageCode,
+          ),
           const SizedBox(height: 18),
           _Block(
-            title: 'Ingredients',
+            title: AppText.get(languageCode, 'ingredients'),
             icon: Icons.format_list_bulleted,
             items: drink.ingredients,
           ),
           const SizedBox(height: 14),
           _Block(
-            title: 'Recipe Steps',
+            title: AppText.get(languageCode, 'recipe_steps'),
             icon: Icons.checklist,
             items: drink.recipeSteps,
             numbered: true,
@@ -738,7 +793,7 @@ class _ExpandedRecipeContent extends StatelessWidget {
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    'Allergy notes: ${drink.allergens.join(' ')}',
+                    '${AppText.get(languageCode, 'allergy_notes')}: ${drink.allergens.join(' ')}',
                     style: const TextStyle(
                       color: Color(0xFF3A1B0F),
                       height: 1.35,
@@ -779,9 +834,11 @@ class _DrinkIcon extends StatelessWidget {
 
 class _LargeDrinkImagePlaceholder extends StatelessWidget {
   final Drink drink;
+  final String languageCode;
 
   const _LargeDrinkImagePlaceholder({
     required this.drink,
+    required this.languageCode,
   });
 
   @override
@@ -824,12 +881,12 @@ class _LargeDrinkImagePlaceholder extends StatelessWidget {
               ),
             ),
           ),
-          const Positioned(
+          Positioned(
             left: 16,
             bottom: 14,
             child: Text(
-              'Image placeholder',
-              style: TextStyle(
+              AppText.get(languageCode, 'image_placeholder'),
+              style: const TextStyle(
                 color: Color(0xFF8A4A21),
                 fontSize: 12,
                 fontWeight: FontWeight.w900,
@@ -844,18 +901,20 @@ class _LargeDrinkImagePlaceholder extends StatelessWidget {
 
 class _Facts extends StatelessWidget {
   final Drink drink;
+  final String languageCode;
 
   const _Facts({
     required this.drink,
+    required this.languageCode,
   });
 
   @override
   Widget build(BuildContext context) {
     final facts = [
-      ('Glass', drink.glassType, Icons.local_bar),
-      ('Ice', drink.ice, Icons.ac_unit),
-      ('Method', drink.method, Icons.sync_alt),
-      ('Garnish', drink.garnish, Icons.spa),
+      (AppText.get(languageCode, 'glass'), drink.glassType, Icons.local_bar),
+      (AppText.get(languageCode, 'ice'), drink.ice, Icons.ac_unit),
+      (AppText.get(languageCode, 'method'), drink.method, Icons.sync_alt),
+      (AppText.get(languageCode, 'garnish'), drink.garnish, Icons.spa),
     ];
 
     return GridView.count(
@@ -1009,7 +1068,11 @@ class _Pill extends StatelessWidget {
 }
 
 class _EmptyState extends StatelessWidget {
-  const _EmptyState();
+  final String languageCode;
+
+  const _EmptyState({
+    required this.languageCode,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -1019,18 +1082,18 @@ class _EmptyState extends StatelessWidget {
         color: potioPaper,
         borderRadius: BorderRadius.circular(28),
       ),
-      child: const Row(
+      child: Row(
         children: [
-          Icon(
+          const Icon(
             Icons.search_off,
             color: potioEmerald,
             size: 30,
           ),
-          SizedBox(width: 12),
+          const SizedBox(width: 12),
           Expanded(
             child: Text(
-              'No drinks match these filters. Try changing alcohol type, difficulty, country, or favourites.',
-              style: TextStyle(
+              AppText.get(languageCode, 'no_drinks_match_filters'),
+              style: const TextStyle(
                 color: potioInk,
                 fontWeight: FontWeight.w800,
                 height: 1.35,

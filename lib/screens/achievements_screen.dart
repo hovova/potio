@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 
 import '../data/achievements.dart';
+import '../data/app_text.dart';
 import '../models/achievement.dart';
 import '../models/player_progress.dart';
 import '../services/audio_service.dart';
+import '../services/language_service.dart';
 import '../services/progress_storage_service.dart';
 import '../widgets/potio_card.dart';
 
@@ -107,114 +109,141 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
       );
     }
 
-    return PotioScaffold(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: ListView(
-          children: [
-            Container(
-              padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
-              decoration: BoxDecoration(
-                color: potioPaper,
-                borderRadius: BorderRadius.circular(28),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.18),
-                    blurRadius: 18,
-                    offset: const Offset(0, 10),
-                  ),
-                ],
-              ),
-              child: const Row(
-                children: [
-                  Icon(
-                    Icons.emoji_events,
-                    color: potioEmerald,
-                    size: 30,
-                  ),
-                  SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'ACHIEVEMENTS',
-                          style: TextStyle(
-                            color: potioCopper,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 1.3,
-                          ),
-                        ),
-                        SizedBox(height: 3),
-                        Text(
-                          'Mixology rewards',
-                          style: TextStyle(
-                            color: potioInk,
-                            fontSize: 22,
-                            fontWeight: FontWeight.w900,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            Row(
+    return ValueListenableBuilder<String>(
+      valueListenable: LanguageService.instance.languageCode,
+      builder: (context, languageCode, _) {
+        return PotioScaffold(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: ListView(
               children: [
-                Expanded(
-                  child: PotioStatPill(
-                    icon: Icons.lock_open,
-                    value: '$unlockedCount/${allAchievements.length}',
-                    label: 'Unlocked',
+                Container(
+                  padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
+                  decoration: BoxDecoration(
+                    color: potioPaper,
+                    borderRadius: BorderRadius.circular(28),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.18),
+                        blurRadius: 18,
+                        offset: const Offset(0, 10),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.emoji_events,
+                        color: potioEmerald,
+                        size: 30,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              AppText.get(languageCode, 'achievements')
+                                  .toUpperCase(),
+                              style: const TextStyle(
+                                color: potioCopper,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 1.3,
+                              ),
+                            ),
+                            const SizedBox(height: 3),
+                            Text(
+                              AppText.get(languageCode, 'mixology_rewards'),
+                              style: const TextStyle(
+                                color: potioInk,
+                                fontSize: 22,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: PotioStatPill(
-                    icon: Icons.workspace_premium_outlined,
-                    value: '${_progress.goldAwards}/20',
-                    label: 'Gold awards',
-                  ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: PotioStatPill(
+                        icon: Icons.lock_open,
+                        value: '$unlockedCount/${allAchievements.length}',
+                        label: AppText.get(languageCode, 'unlocked'),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: PotioStatPill(
+                        icon: Icons.workspace_premium_outlined,
+                        value: '${_progress.goldAwards}/20',
+                        label: AppText.get(languageCode, 'gold_awards'),
+                      ),
+                    ),
+                  ],
                 ),
+                const SizedBox(height: 18),
+                for (final achievement in allAchievements) ...[
+                  _AchievementCard(
+                    achievement: achievement,
+                    languageCode: languageCode,
+                    unlocked: _isUnlocked(achievement),
+                    current: _progressCurrent(achievement),
+                    target: _progressTarget(achievement),
+                  ),
+                  const SizedBox(height: 12),
+                ],
               ],
             ),
-            const SizedBox(height: 18),
-            for (final achievement in allAchievements) ...[
-              _AchievementCard(
-                achievement: achievement,
-                unlocked: _isUnlocked(achievement),
-                current: _progressCurrent(achievement),
-                target: _progressTarget(achievement),
-              ),
-              const SizedBox(height: 12),
-            ],
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }
 
 class _AchievementCard extends StatelessWidget {
   final Achievement achievement;
+  final String languageCode;
   final bool unlocked;
   final int current;
   final int target;
 
   const _AchievementCard({
     required this.achievement,
+    required this.languageCode,
     required this.unlocked,
     required this.current,
     required this.target,
   });
 
+  String get _titleKey {
+    return 'achievement_${achievement.id}_title';
+  }
+
+  String get _subtitleKey {
+    return 'achievement_${achievement.id}_subtitle';
+  }
+
+  String get _rewardKey {
+    return 'achievement_${achievement.id}_reward';
+  }
+
   @override
   Widget build(BuildContext context) {
     final safeTarget = target <= 0 ? 1 : target;
     final progress = (current / safeTarget).clamp(0.0, 1.0);
+
+    final translatedTitle = AppText.get(languageCode, _titleKey);
+    final translatedSubtitle = AppText.get(languageCode, _subtitleKey);
+    final translatedReward = achievement.reward == null
+        ? null
+        : AppText.get(languageCode, _rewardKey);
 
     return Material(
       color: Colors.transparent,
@@ -257,7 +286,7 @@ class _AchievementCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      achievement.title,
+                      translatedTitle,
                       style: const TextStyle(
                         color: potioPaper,
                         fontSize: 17,
@@ -266,7 +295,7 @@ class _AchievementCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      achievement.description,
+                      translatedSubtitle,
                       style: const TextStyle(
                         color: potioPaperDeep,
                         height: 1.3,
@@ -292,10 +321,10 @@ class _AchievementCard extends StatelessWidget {
                         fontWeight: FontWeight.w900,
                       ),
                     ),
-                    if (achievement.reward != null) ...[
+                    if (translatedReward != null) ...[
                       const SizedBox(height: 6),
                       Text(
-                        achievement.reward!,
+                        translatedReward,
                         style: const TextStyle(
                           color: potioCopperLight,
                           fontSize: 11,
