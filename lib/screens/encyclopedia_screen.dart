@@ -7,7 +7,9 @@ import '../models/player_progress.dart';
 import '../services/audio_service.dart';
 import '../services/language_service.dart';
 import '../services/progress_storage_service.dart';
+import '../services/purchase_service.dart';
 import '../widgets/potio_card.dart';
+import 'premium_screen.dart';
 
 class EncyclopediaScreen extends StatefulWidget {
   const EncyclopediaScreen({super.key});
@@ -28,6 +30,8 @@ class _EncyclopediaScreenState extends State<EncyclopediaScreen> {
   bool showFavouritesOnly = false;
 
   final Set<String> expandedDrinkIds = {};
+
+  bool get isPremium => PotioPurchaseService.instance.isPremium.value;
 
   @override
   void initState() {
@@ -57,28 +61,28 @@ class _EncyclopediaScreenState extends State<EncyclopediaScreen> {
   }
 
   List<String> get alcoholTypeOptions {
-    final values = basicDrinks.map((drink) => drink.baseSpirit).toSet().toList()
+    final values = allDrinks.map((drink) => drink.baseSpirit).toSet().toList()
       ..sort();
 
     return ['All', ...values];
   }
 
   List<String> get difficultyOptions {
-    final values = basicDrinks.map((drink) => drink.difficulty).toSet().toList()
+    final values = allDrinks.map((drink) => drink.difficulty).toSet().toList()
       ..sort();
 
     return ['All', ...values];
   }
 
   List<String> get originOptions {
-    final values = basicDrinks.map((drink) => drink.origin).toSet().toList()
+    final values = allDrinks.map((drink) => drink.origin).toSet().toList()
       ..sort();
 
     return ['All', ...values];
   }
 
   List<Drink> get filteredDrinks {
-    return basicDrinks.where((drink) {
+    return allDrinks.where((drink) {
       final matchesAlcohol = selectedAlcoholType == 'All' ||
           drink.baseSpirit.toLowerCase() == selectedAlcoholType.toLowerCase();
 
@@ -207,6 +211,7 @@ class _EncyclopediaScreenState extends State<EncyclopediaScreen> {
                       languageCode: languageCode,
                       expanded: expandedDrinkIds.contains(drink.id),
                       favourite: _progress.favouriteDrinkIds.contains(drink.id),
+                      locked: drink.isPremium && !isPremium,
                       onToggleExpanded: () => _toggleExpanded(drink),
                       onToggleFavourite: () => _toggleFavourite(drink),
                     ),
@@ -605,6 +610,7 @@ class DrinkRecipeCard extends StatelessWidget {
   final String languageCode;
   final bool expanded;
   final bool favourite;
+  final bool locked;
   final VoidCallback onToggleExpanded;
   final VoidCallback onToggleFavourite;
 
@@ -614,6 +620,7 @@ class DrinkRecipeCard extends StatelessWidget {
     required this.languageCode,
     required this.expanded,
     required this.favourite,
+    required this.locked,
     required this.onToggleExpanded,
     required this.onToggleFavourite,
   });
@@ -661,18 +668,25 @@ class DrinkRecipeCard extends StatelessWidget {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              '${drink.category} • ${drink.tasteProfile}',
+                              locked 
+                                  ? 'Premium Recipe' 
+                                  : '${drink.category} • ${drink.tasteProfile}',
                               maxLines: expanded ? 3 : 2,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                color: Color(0xFFE8CBAA),
+                              style: TextStyle(
+                                color: locked ? const Color(0xFFFFCC7A) : const Color(0xFFE8CBAA),
                                 height: 1.25,
-                                fontWeight: FontWeight.w600,
+                                fontWeight: locked ? FontWeight.w900 : FontWeight.w600,
                               ),
                             ),
                           ],
                         ),
                       ),
+                      if (locked)
+                        const Padding(
+                          padding: EdgeInsets.only(right: 8.0),
+                          child: Icon(Icons.lock, color: Color(0xFFFFCC7A), size: 22),
+                        ),
                       IconButton(
                         onPressed: onToggleFavourite,
                         icon: Icon(
@@ -702,16 +716,88 @@ class DrinkRecipeCard extends StatelessWidget {
               ),
             ),
             if (expanded)
-              _ExpandedRecipeContent(
-                drink: drink,
-                languageCode: languageCode,
-              ),
+              if (locked)
+                _LockedPremiumContent(languageCode: languageCode)
+              else
+                _ExpandedRecipeContent(
+                  drink: drink,
+                  languageCode: languageCode,
+                ),
           ],
         ),
       ),
     );
   }
 }
+
+class _LockedPremiumContent extends StatelessWidget {
+  final String languageCode;
+
+  const _LockedPremiumContent({
+    required this.languageCode,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      width: double.infinity,
+      color: const Color(0xFFFFCC7A).withValues(alpha: 0.15),
+      child: Column(
+        children: [
+          const Icon(
+            Icons.lock_outline,
+            size: 48,
+            color: Color(0xFF8A4A21),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            AppText.get(languageCode, 'premium_drink'),
+            style: const TextStyle(
+              color: Color(0xFF3A1B0F),
+              fontWeight: FontWeight.w900,
+              fontSize: 18,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            AppText.get(languageCode, 'unlock_premium_recipe'),
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: Color(0xFF8A4A21),
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 18),
+          FilledButton.icon(
+            style: FilledButton.styleFrom(
+              backgroundColor: const Color(0xFF8A4A21),
+              foregroundColor: const Color(0xFFFFE2B8),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(999),
+              ),
+            ),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const PremiumScreen(),
+                ),
+              );
+            },
+            icon: const Icon(Icons.workspace_premium),
+            label: Text(
+              AppText.get(languageCode, 'unlock_premium'),
+              style: const TextStyle(fontWeight: FontWeight.w900),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 
 class _ExpandedRecipeContent extends StatelessWidget {
   final Drink drink;

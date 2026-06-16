@@ -6,6 +6,7 @@ import '../models/player_progress.dart';
 import '../services/audio_service.dart';
 import '../services/language_service.dart';
 import '../services/progress_storage_service.dart';
+import '../services/purchase_service.dart';
 import '../widgets/potio_card.dart';
 import 'premium_screen.dart';
 
@@ -165,10 +166,6 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
   Future<void> _loadProgress() async {
     final loaded = await _storage.loadProgress();
 
-    if (loaded.hasPremium) {
-      potioPremiumActiveNotifier.value = true;
-    }
-
     if (!mounted) return;
 
     setState(() {
@@ -198,7 +195,7 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
   }
 
   bool get premiumActive {
-    return _progress.hasPremium || potioPremiumActiveNotifier.value;
+    return _progress.hasPremium || PotioPurchaseService.instance.isPremium.value;
   }
 
   bool _isUnlocked(_AvatarItem item) {
@@ -399,9 +396,10 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
         final previewFrame = _fallbackSelectedFrame();
         final previewFrameName = AppText.get(languageCode, previewFrame.titleKey);
 
+
         return ValueListenableBuilder<bool>(
-          valueListenable: potioPremiumActiveNotifier,
-          builder: (context, premiumActive, child) {
+          valueListenable: PotioPurchaseService.instance.isPremium,
+          builder: (context, isPremiumActive, child) {
             return PotioScaffold(
               child: Padding(
                 padding: const EdgeInsets.all(20),
@@ -952,25 +950,25 @@ class _FrameStyle {
         return _FrameStyle(
           gradient: LinearGradient(
             colors: [
-              Color(0xFFFFD36A),
+              const Color(0xFFFFD36A),
               potioCopperLight,
-              Color(0xFFFFF0B8),
+              const Color(0xFFFFF0B8),
             ],
           ),
           border: Border.all(
-            color: Color(0xFFFFF0B8),
+            color: const Color(0xFFFFF0B8),
             width: 2,
           ),
           shadows: [
             BoxShadow(
-              color: Color(0xFFFFD36A).withValues(alpha: 0.45),
+              color: const Color(0xFFFFD36A).withValues(alpha: 0.45),
               blurRadius: 18,
             ),
           ],
         );
       case 'diamond_bar_frame':
         return _FrameStyle(
-          gradient: LinearGradient(
+          gradient: const LinearGradient(
             colors: [
               Color(0xFFDBF7FF),
               Color(0xFF8FD8FF),
@@ -978,12 +976,12 @@ class _FrameStyle {
             ],
           ),
           border: Border.all(
-            color: Color(0xFFFFFFFF),
+            color: const Color(0xFFFFFFFF),
             width: 2,
           ),
           shadows: [
             BoxShadow(
-              color: Color(0xFF8FD8FF).withValues(alpha: 0.45),
+              color: const Color(0xFF8FD8FF).withValues(alpha: 0.45),
               blurRadius: 18,
             ),
           ],
@@ -993,7 +991,7 @@ class _FrameStyle {
           gradient: LinearGradient(
             colors: [
               potioEmerald,
-              Color(0xFF34D399),
+              const Color(0xFF34D399),
               potioCopperLight,
             ],
           ),
@@ -1010,7 +1008,7 @@ class _FrameStyle {
         );
       case 'premium_platinum_frame':
         return _FrameStyle(
-          gradient: LinearGradient(
+          gradient: const LinearGradient(
             colors: [
               Color(0xFFFFFFFF),
               Color(0xFFD8E4F0),
@@ -1018,12 +1016,12 @@ class _FrameStyle {
             ],
           ),
           border: Border.all(
-            color: Color(0xFFFFFFFF),
+            color: const Color(0xFFFFFFFF),
             width: 2,
           ),
           shadows: [
             BoxShadow(
-              color: Color(0xFFD8E4F0).withValues(alpha: 0.55),
+              color: const Color(0xFFD8E4F0).withValues(alpha: 0.55),
               blurRadius: 22,
             ),
           ],

@@ -4,10 +4,8 @@ import 'package:flutter/material.dart';
 import '../data/app_text.dart';
 import '../services/audio_service.dart';
 import '../services/language_service.dart';
+import '../services/purchase_service.dart';
 import '../widgets/potio_card.dart';
-
-final ValueNotifier<bool> potioPremiumActiveNotifier =
-    ValueNotifier<bool>(false);
 
 class PremiumScreen extends StatefulWidget {
   const PremiumScreen({super.key});
@@ -19,6 +17,19 @@ class PremiumScreen extends StatefulWidget {
 class _PremiumScreenState extends State<PremiumScreen> {
   Future<void> _showPurchaseComingSoon(String languageCode) async {
     await PotioAudioService.instance.playTap();
+
+
+    if (kIsWeb) {
+      PotioPurchaseService.instance.debugUnlockPremium();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppText.get(languageCode, 'developer_premium_unlocked') ?? 'Premium unlocked for Web testing!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+      return;
+    }
 
     if (!mounted) return;
 
@@ -34,14 +45,16 @@ class _PremiumScreenState extends State<PremiumScreen> {
   Future<void> _toggleDeveloperPremium(String languageCode) async {
     await PotioAudioService.instance.playTap();
 
-    potioPremiumActiveNotifier.value = !potioPremiumActiveNotifier.value;
+
+    final service = PotioPurchaseService.instance;
+    service.isPremium.value = !service.isPremium.value;
 
     if (!mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          potioPremiumActiveNotifier.value
+          service.isPremium.value
               ? AppText.get(languageCode, 'developer_premium_unlocked')
               : AppText.get(languageCode, 'developer_premium_disabled'),
         ),
@@ -67,8 +80,9 @@ class _PremiumScreenState extends State<PremiumScreen> {
                   icon: Icons.workspace_premium,
                 ),
                 const SizedBox(height: 18),
+
                 ValueListenableBuilder<bool>(
-                  valueListenable: potioPremiumActiveNotifier,
+                  valueListenable: PotioPurchaseService.instance.isPremium,
                   builder: (context, premiumActive, _) {
                     return Container(
                       padding: const EdgeInsets.all(14),
@@ -209,8 +223,9 @@ class _PremiumScreenState extends State<PremiumScreen> {
                 ),
                 if (kDebugMode) ...[
                   const SizedBox(height: 10),
+
                   ValueListenableBuilder<bool>(
-                    valueListenable: potioPremiumActiveNotifier,
+                    valueListenable: PotioPurchaseService.instance.isPremium,
                     builder: (context, premiumActive, _) {
                       return OutlinedButton.icon(
                         style: OutlinedButton.styleFrom(
