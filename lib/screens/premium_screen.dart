@@ -24,7 +24,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(AppText.get(languageCode, 'developer_premium_unlocked') ?? 'Premium unlocked for Web testing!'),
+          content: Text(AppText.get(languageCode, 'developer_premium_unlocked')),
           backgroundColor: Colors.green,
         ),
       );

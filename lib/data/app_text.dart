@@ -1292,5 +1292,25 @@ class AppText {
         'uk': 'Преміум Рецепт',
         'ru': 'Премиум Рецепт',
       },
+      'which_drink_ingredients': {
+        'en': 'Which drink contains these ingredients?',
+        'uk': 'Який напій містить ці інгредієнти?',
+        'ru': 'Какой напиток содержит эти ингредиенты?',
+      },
+      'game_over': {
+        'en': 'Game Over!',
+        'uk': 'Гру завершено!',
+        'ru': 'Игра окончена!',
+      },
+      'xp_earned': {
+        'en': 'XP Earned',
+        'uk': 'Отримано XP',
+        'ru': 'Получено XP',
+      },
+      'back_to_menu': {
+        'en': 'Back to Menu',
+        'uk': 'В меню',
+        'ru': 'В меню',
+      },
   };
 }

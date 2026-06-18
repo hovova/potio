@@ -18,6 +18,7 @@ class PotioAudioService {
   bool _musicStarted = false;
 
   Future<void> playTap() async {
+    // The audioplayers package automatically prefixes with "assets/"
     await _playSound('audio/button_tap.mp3');
   }
 

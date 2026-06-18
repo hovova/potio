@@ -7,7 +7,7 @@ import '../widgets/potio_card.dart';
 import 'daily_match_challenge_screen.dart';
 import 'match_challenge_screen.dart';
 import 'mythology_quiz_screen.dart';
-import 'quiz_screen.dart';
+import 'recipe_guess_screen.dart'; // <-- 1. IMPORT THE NEW GAME HERE
 
 class PlayScreen extends StatelessWidget {
   const PlayScreen({super.key});
@@ -65,7 +65,8 @@ class PlayScreen extends StatelessWidget {
                     languageCode,
                     'recipe_guess_subtitle',
                   ),
-                  onTap: () => _openScreen(context, const QuizScreen()),
+                  // 2. LINK THE BUTTON TO THE NEW GAME HERE
+                  onTap: () => _openScreen(context, const RecipeGuessScreen()), 
                 ),
                 const SizedBox(height: 12),
                 PotioCard(
