@@ -939,47 +939,64 @@ class _LargeDrinkImagePlaceholder extends StatelessWidget {
           color: const Color(0xFF8A4A21).withValues(alpha: 0.18),
         ),
       ),
-      child: Stack(
-        children: [
-          Center(
-            child: Icon(
-              Icons.add_photo_alternate_outlined,
-              color: const Color(0xFF8A4A21).withValues(alpha: 0.35),
-              size: 54,
+     
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(24),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+           
+            Image.asset(
+              'assets/drinks/${drink.id}.png',
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.add_photo_alternate_outlined,
+                        color: const Color(0xFF8A4A21).withValues(alpha: 0.35),
+                        size: 54,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        AppText.get(languageCode, 'image_placeholder'),
+                        style: const TextStyle(
+                          color: Color(0xFF8A4A21),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
             ),
-          ),
-          Positioned(
-            left: 16,
-            top: 14,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-              decoration: BoxDecoration(
-                color: const Color(0xFFFFF1D9).withValues(alpha: 0.85),
-                borderRadius: BorderRadius.circular(999),
-              ),
-              child: Text(
-                drink.name,
-                style: const TextStyle(
-                  color: Color(0xFF3A1B0F),
-                  fontSize: 12,
-                  fontWeight: FontWeight.w900,
+            
+        
+            Positioned(
+              left: 16,
+              top: 14,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFF1D9).withValues(alpha: 0.85),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text(
+                  drink.name,
+                  style: const TextStyle(
+                    color: Color(0xFF3A1B0F),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w900,
+                  ),
                 ),
               ),
             ),
-          ),
-          Positioned(
-            left: 16,
-            bottom: 14,
-            child: Text(
-              AppText.get(languageCode, 'image_placeholder'),
-              style: const TextStyle(
-                color: Color(0xFF8A4A21),
-                fontSize: 12,
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

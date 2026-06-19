@@ -5,9 +5,9 @@ import '../services/audio_service.dart';
 import '../services/language_service.dart';
 import '../widgets/potio_card.dart';
 import 'daily_match_challenge_screen.dart';
-import 'match_challenge_screen.dart';
 import 'mythology_quiz_screen.dart';
-import 'recipe_guess_screen.dart'; // <-- 1. IMPORT THE NEW GAME HERE
+import 'recipe_guess_screen.dart';
+import 'picture_match_screen.dart';
 
 class PlayScreen extends StatelessWidget {
   const PlayScreen({super.key});
@@ -79,7 +79,7 @@ class PlayScreen extends StatelessWidget {
                   ),
                   onTap: () => _openScreen(
                     context,
-                    const MatchChallengeScreen(),
+                    const PictureMatchScreen(),
                   ),
                 ),
                 const SizedBox(height: 12),
