@@ -35,6 +35,7 @@ class _RecipeGuessScreenState extends State<RecipeGuessScreen> {
   List<_RecipeGuessQuestion> _questions = [];
   int _currentIndex = 0;
   int _score = 0;
+  int _lives = 3; // <--- ADDED LIVES
   
   bool _isAnswered = false;
   Drink? _selectedAnswer;
@@ -48,26 +49,20 @@ class _RecipeGuessScreenState extends State<RecipeGuessScreen> {
   Future<void> _initGame() async {
     _progress = await _storage.loadProgress();
 
-    // 1. Check premium status globally!
     final isPremium = PotioPurchaseService.instance.isPremium.value || _progress.hasPremium;
-    
-    // 2. Load the correct pool of drinks (50 vs 100)
     final availableDrinks = isPremium ? allDrinks : basicDrinks;
 
     final random = Random();
     
-    // 3. Pick 10 random drinks to be the questions
     final shuffledDrinks = List<Drink>.from(availableDrinks)..shuffle(random);
     final selectedDrinks = shuffledDrinks.take(10).toList();
 
-    // 4. Generate 3 wrong options for each question
     _questions = selectedDrinks.map((correctDrink) {
       final wrongDrinks = availableDrinks
           .where((d) => d.id != correctDrink.id)
           .toList()..shuffle(random);
 
       final options = [correctDrink, ...wrongDrinks.take(3)]..shuffle(random);
-
       return _RecipeGuessQuestion(correctDrink, options);
     }).toList();
 
@@ -89,17 +84,20 @@ class _RecipeGuessScreenState extends State<RecipeGuessScreen> {
     final isCorrect = option.id == _questions[_currentIndex].correctDrink.id;
     if (isCorrect) {
       _score++;
-      PotioAudioService.instance.playCorrect(); // PLAY CORRECT SOUND!
+      PotioAudioService.instance.playCorrect();
     } else {
-      PotioAudioService.instance.playWrong();   // PLAY WRONG SOUND!
+      _lives--; // <--- DECREASE LIVES ON WRONG ANSWER
+      PotioAudioService.instance.playWrong();
     }
 
-    // Wait 1.5 seconds so the user can see the correct answer
     await Future.delayed(const Duration(milliseconds: 1500));
 
     if (!mounted) return;
 
-    if (_currentIndex < _questions.length - 1) {
+    // Check if dead
+    if (_lives <= 0) {
+      _finishGame();
+    } else if (_currentIndex < _questions.length - 1) {
       setState(() {
         _currentIndex++;
         _isAnswered = false;
@@ -111,7 +109,6 @@ class _RecipeGuessScreenState extends State<RecipeGuessScreen> {
   }
 
   Future<void> _finishGame() async {
-    // 10 XP per correct answer
     final xpEarned = _score * 10;
     final updatedProgress = _progress.addXp(xpEarned);
     await _storage.saveProgress(updatedProgress);
@@ -123,18 +120,10 @@ class _RecipeGuessScreenState extends State<RecipeGuessScreen> {
 
   Color _getOptionColor(Drink option) {
     if (!_isAnswered) return Colors.white;
-
     final isCorrectOption = option.id == _questions[_currentIndex].correctDrink.id;
-    
-    if (isCorrectOption) {
-      return potioEmerald.withValues(alpha: 0.9); // Green for correct
-    }
-    
-    if (option.id == _selectedAnswer?.id) {
-      return Colors.red.shade400; // Red if they tapped the wrong one
-    }
-
-    return Colors.white.withValues(alpha: 0.5); // Fade out the rest
+    if (isCorrectOption) return potioEmerald.withValues(alpha: 0.9);
+    if (option.id == _selectedAnswer?.id) return Colors.red.shade400;
+    return Colors.white.withValues(alpha: 0.5);
   }
 
   Color _getTextColor(Drink option) {
@@ -169,29 +158,37 @@ class _RecipeGuessScreenState extends State<RecipeGuessScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // HEADER
+              // HEADER WITH LIVES
               Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   IconButton(
                     icon: const Icon(Icons.close, color: potioInk),
                     onPressed: () => Navigator.pop(context),
                   ),
-                  Expanded(
-                    child: Text(
-                      '${_currentIndex + 1} / ${_questions.length}',
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        color: potioMutedInk,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w900,
-                      ),
+                  Text(
+                    '${_currentIndex + 1} / ${_questions.length}',
+                    style: const TextStyle(
+                      color: potioMutedInk,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w900,
                     ),
                   ),
-                  const SizedBox(width: 48), // Balance for back button
+                  Row(
+                    children: List.generate(3, (index) {
+                      return Padding(
+                        padding: const EdgeInsets.only(left: 4),
+                        child: Icon(
+                          index < _lives ? Icons.favorite : Icons.favorite_border,
+                          color: index < _lives ? Colors.red.shade400 : potioMutedInk.withValues(alpha: 0.3),
+                          size: 24,
+                        ),
+                      );
+                    }),
+                  ),
                 ],
               ),
               
-              // PROGRESS BAR
               const SizedBox(height: 12),
               LinearProgressIndicator(
                 value: (_currentIndex) / _questions.length,
@@ -309,6 +306,8 @@ class _RecipeGuessScreenState extends State<RecipeGuessScreen> {
   }
 
   Widget _buildResultsScreen(String languageCode) {
+    final isDead = _lives <= 0;
+
     return PotioScaffold(
       child: Center(
         child: Padding(
@@ -316,10 +315,14 @@ class _RecipeGuessScreenState extends State<RecipeGuessScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.emoji_events, color: potioCopper, size: 72),
+              Icon(
+                isDead ? Icons.heart_broken : Icons.emoji_events, 
+                color: isDead ? Colors.red.shade400 : potioCopper, 
+                size: 72
+              ),
               const SizedBox(height: 20),
               Text(
-                AppText.get(languageCode, 'game_over'),
+                isDead ? AppText.get(languageCode, 'out_of_lives') : AppText.get(languageCode, 'quiz_complete'),
                 style: const TextStyle(
                   color: potioInk,
                   fontSize: 32,

@@ -1312,5 +1312,15 @@ class AppText {
         'uk': 'В меню',
         'ru': 'В меню',
       },
+      'out_of_lives': {
+      'en': 'Out of Lives!',
+      'uk': 'Немає життів!',
+      'ru': 'Закончились жизни!',
+      },
+      'quiz_complete': {
+        'en': 'Quiz Complete!',
+        'uk': 'Гру завершено!',
+        'ru': 'Игра окончена!',
+    },
   };
 }

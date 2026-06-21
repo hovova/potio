@@ -35,6 +35,7 @@ class _PictureMatchScreenState extends State<PictureMatchScreen> {
   List<_PictureMatchQuestion> _questions = [];
   int _currentIndex = 0;
   int _score = 0;
+  int _lives = 3; // <--- ADDED LIVES
   
   bool _isAnswered = false;
   Drink? _selectedAnswer;
@@ -48,24 +49,20 @@ class _PictureMatchScreenState extends State<PictureMatchScreen> {
   Future<void> _initGame() async {
     _progress = await _storage.loadProgress();
 
-    // Check premium status to determine drink pool
     final isPremium = PotioPurchaseService.instance.isPremium.value || _progress.hasPremium;
     final availableDrinks = isPremium ? allDrinks : basicDrinks;
 
     final random = Random();
     
-    // Pick 10 random drinks
     final shuffledDrinks = List<Drink>.from(availableDrinks)..shuffle(random);
     final selectedDrinks = shuffledDrinks.take(10).toList();
 
-    // Generate 3 wrong options for each question
     _questions = selectedDrinks.map((correctDrink) {
       final wrongDrinks = availableDrinks
           .where((d) => d.id != correctDrink.id)
           .toList()..shuffle(random);
 
       final options = [correctDrink, ...wrongDrinks.take(3)]..shuffle(random);
-
       return _PictureMatchQuestion(correctDrink, options);
     }).toList();
 
@@ -89,15 +86,17 @@ class _PictureMatchScreenState extends State<PictureMatchScreen> {
       _score++;
       PotioAudioService.instance.playCorrect();
     } else {
+      _lives--; // <--- DECREASE LIVES
       PotioAudioService.instance.playWrong();
     }
 
-    // Wait 1.5 seconds to show the correct answer
     await Future.delayed(const Duration(milliseconds: 1500));
 
     if (!mounted) return;
 
-    if (_currentIndex < _questions.length - 1) {
+    if (_lives <= 0) {
+      _finishGame();
+    } else if (_currentIndex < _questions.length - 1) {
       setState(() {
         _currentIndex++;
         _isAnswered = false;
@@ -120,11 +119,9 @@ class _PictureMatchScreenState extends State<PictureMatchScreen> {
 
   Color _getOptionColor(Drink option) {
     if (!_isAnswered) return Colors.white;
-
     final isCorrectOption = option.id == _questions[_currentIndex].correctDrink.id;
     if (isCorrectOption) return potioEmerald.withValues(alpha: 0.9);
     if (option.id == _selectedAnswer?.id) return Colors.red.shade400;
-
     return Colors.white.withValues(alpha: 0.5);
   }
 
@@ -160,29 +157,37 @@ class _PictureMatchScreenState extends State<PictureMatchScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // HEADER
+              // HEADER WITH LIVES
               Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   IconButton(
                     icon: const Icon(Icons.close, color: potioInk),
                     onPressed: () => Navigator.pop(context),
                   ),
-                  Expanded(
-                    child: Text(
-                      '${_currentIndex + 1} / ${_questions.length}',
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        color: potioMutedInk,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w900,
-                      ),
+                  Text(
+                    '${_currentIndex + 1} / ${_questions.length}',
+                    style: const TextStyle(
+                      color: potioMutedInk,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w900,
                     ),
                   ),
-                  const SizedBox(width: 48),
+                  Row(
+                    children: List.generate(3, (index) {
+                      return Padding(
+                        padding: const EdgeInsets.only(left: 4),
+                        child: Icon(
+                          index < _lives ? Icons.favorite : Icons.favorite_border,
+                          color: index < _lives ? Colors.red.shade400 : potioMutedInk.withValues(alpha: 0.3),
+                          size: 24,
+                        ),
+                      );
+                    }),
+                  ),
                 ],
               ),
               
-              // PROGRESS BAR
               const SizedBox(height: 12),
               LinearProgressIndicator(
                 value: (_currentIndex) / _questions.length,
@@ -194,7 +199,7 @@ class _PictureMatchScreenState extends State<PictureMatchScreen> {
 
               const SizedBox(height: 24),
               
-              // QUESTION CARD (Image + Description)
+              // QUESTION CARD
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
@@ -210,7 +215,6 @@ class _PictureMatchScreenState extends State<PictureMatchScreen> {
                 ),
                 child: Column(
                   children: [
-                    // ACTUAL IMAGE OR PLACEHOLDER
                     Container(
                       height: 180,
                       width: double.infinity,
@@ -221,10 +225,9 @@ class _PictureMatchScreenState extends State<PictureMatchScreen> {
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(16),
                         child: Image.asset(
-                          'assets/drinks/${currentQ.correctDrink.id}.png', // Tries to load real image
-                          fit: BoxFit.cover,
+                          'assets/drinks/${currentQ.correctDrink.id}.png',
+                          fit: BoxFit.contain, // Recommended for transparent PNGs
                           errorBuilder: (context, error, stackTrace) {
-                            // FALLBACK: If image doesn't exist, show placeholder UI
                             return Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
@@ -244,7 +247,6 @@ class _PictureMatchScreenState extends State<PictureMatchScreen> {
                       ),
                     ),
                     const SizedBox(height: 20),
-                    // HINT: Short Description
                     Text(
                       currentQ.correctDrink.shortDescription,
                       textAlign: TextAlign.center,
@@ -310,6 +312,8 @@ class _PictureMatchScreenState extends State<PictureMatchScreen> {
   }
 
   Widget _buildResultsScreen(String languageCode) {
+    final isDead = _lives <= 0;
+
     return PotioScaffold(
       child: Center(
         child: Padding(
@@ -317,10 +321,14 @@ class _PictureMatchScreenState extends State<PictureMatchScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.emoji_events, color: potioCopper, size: 72),
+              Icon(
+                isDead ? Icons.heart_broken : Icons.emoji_events, 
+                color: isDead ? Colors.red.shade400 : potioCopper, 
+                size: 72
+              ),
               const SizedBox(height: 20),
               Text(
-                AppText.get(languageCode, 'game_over'),
+                isDead ? AppText.get(languageCode, 'out_of_lives') : AppText.get(languageCode, 'quiz_complete'),
                 style: const TextStyle(
                   color: potioInk,
                   fontSize: 32,
