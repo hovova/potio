@@ -8,6 +8,7 @@ import 'daily_match_challenge_screen.dart';
 import 'mythology_quiz_screen.dart';
 import 'recipe_guess_screen.dart';
 import 'picture_match_screen.dart';
+import 'mixology_trivia_screen.dart';
 
 class PlayScreen extends StatelessWidget {
   const PlayScreen({super.key});
@@ -107,7 +108,7 @@ class PlayScreen extends StatelessWidget {
                   ),
                   onTap: () => _openScreen(
                     context,
-                    const MythologyQuizScreen(),
+                    const MixologyTriviaScreen(),
                   ),
                 ),
                 const SizedBox(height: 12),

@@ -1322,5 +1322,25 @@ class AppText {
         'uk': 'Гру завершено!',
         'ru': 'Игра окончена!',
     },
+    'trivia_origin': {
+      'en': 'Which drink originates from here?',
+      'uk': 'Який напій походить звідси?',
+      'ru': 'Какой напиток родом отсюда?',
+    },
+    'trivia_glass': {
+      'en': 'Which drink uses this glass?',
+      'uk': 'Який напій подають у цьому келиху?',
+      'ru': 'Какой напиток подают в этом бокале?',
+    },
+    'trivia_category': {
+      'en': 'Which drink belongs to this category?',
+      'uk': 'Який напій належить до цієї категорії?',
+      'ru': 'Какой напиток относится к этой категории?',
+    },
+    'trivia_method': {
+      'en': 'Which drink is made using this method?',
+      'uk': 'Який напій готують цим методом?',
+      'ru': 'Какой напиток готовят этим методом?',
+    },
   };
 }
